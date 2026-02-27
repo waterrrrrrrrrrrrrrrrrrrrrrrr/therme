@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions – <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;--green:#22c55e;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.8;}
+    a{text-decoration:none;color:var(--blue-light);}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .nav-links a.nav-active {
+      color: var(--text) !important;
+      background: rgba(59,130,246,0.12);
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .page{max-width:860px;margin:0 auto;padding:72px 24px 100px;}
+    .page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border);}
+    .page-header h1{font-size:40px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;}
+    .page-header .meta{color:var(--muted);font-size:14px;}
+    .toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px;}
+    .toc h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;}
+    .toc ol{padding-left:20px;}
+    .toc li{font-size:14px;padding:3px 0;}
+    .toc a{color:var(--blue-light);}
+    section{margin-bottom:44px;}
+    section h2{font-size:20px;font-weight:700;margin-bottom:14px;padding-top:8px;}
+    section h2 .num{color:var(--muted);font-weight:400;margin-right:6px;}
+    p{color:var(--muted);font-size:15px;margin-bottom:14px;}
+    ul,ol{color:var(--muted);font-size:15px;padding-left:22px;margin-bottom:14px;}
+    li{padding:3px 0;}
+    strong{color:var(--text);}
+    .highlight-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:20px 0;}
+    .highlight-box p{margin:0;font-size:14px;}
+    footer{text-align:center;padding:40px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:60px;}
+    footer a{color:var(--blue-light);}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Terms &amp; Conditions</h1>
+    <p class="meta">Last updated: <%= new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) %> &nbsp;·&nbsp; Version 1.0</p>
+  </div>
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#acceptance">Acceptance of Terms</a></li>
+      <li><a href="#service">Description of Service</a></li>
+      <li><a href="#accounts">Accounts &amp; Workspaces</a></li>
+      <li><a href="#use">Acceptable Use</a></li>
+      <li><a href="#data">Data &amp; Privacy</a></li>
+      <li><a href="#compliance">Compliance Responsibility</a></li>
+      <li><a href="#ip">Intellectual Property</a></li>
+      <li><a href="#billing">Billing &amp; Subscriptions</a></li>
+      <li><a href="#liability">Limitation of Liability</a></li>
+      <li><a href="#termination">Termination</a></li>
+      <li><a href="#changes">Changes to Terms</a></li>
+      <li><a href="#governing">Governing Law</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Plain English summary:</strong> Thermio is a temperature compliance platform for cold chain operations. By using it, you agree to these terms. You own your data. We keep it secure. You're responsible for ensuring your team uses the system correctly. We're not liable if regulatory requirements change or audits fail due to incorrect data entry.</p>
+  </div>
+
+  <section id="acceptance">
+    <h2><span class="num">1.</span> Acceptance of Terms</h2>
+    <p>By accessing or using Thermio ("the Service", "the Platform"), you ("the Customer", "you", "your organisation") agree to be bound by these Terms and Conditions. If you are accepting on behalf of a company or other legal entity, you represent that you have the authority to bind that entity to these terms.</p>
+    <p>If you do not agree to these terms, do not use the Service.</p>
+  </section>
+
+  <section id="service">
+    <h2><span class="num">2.</span> Description of Service</h2>
+    <p>Thermio is a cloud-based temperature monitoring and compliance management platform designed for cold chain logistics operators. The Service includes:</p>
+    <ul>
+      <li>Digital temperature logging by drivers via web interface</li>
+      <li>Automated compliance sheet generation and digital sign-off</li>
+      <li>Driver performance tracking and exception reporting</li>
+      <li>Fleet vehicle management and notes</li>
+      <li>Multi-asset workspace management tools</li>
+      <li>Data export, backup, and retention management</li>
+    </ul>
+    <p>We reserve the right to modify, suspend, or discontinue any part of the Service at any time with reasonable notice.</p>
+  </section>
+
+  <section id="accounts">
+    <h2><span class="num">3.</span> Accounts &amp; Workspaces</h2>
+    <p>Each organisation is provisioned a <strong>Workspace</strong> with a unique URL slug. Access to your workspace is governed by role-based permissions:</p>
+    <ul>
+      <li><strong>Portal Admin</strong> — platform administrator, manages all workspaces</li>
+      <li><strong>Admin</strong> — manages users, vehicles, and sign-offs within a workspace</li>
+      <li><strong>Office</strong> — read access to logs and reports</li>
+      <li><strong>Driver</strong> — logs temperature readings only</li>
+    </ul>
+    <p>You are responsible for:</p>
+    <ul>
+      <li>Maintaining the confidentiality of all login credentials</li>
+      <li>All activity that occurs under your workspace accounts</li>
+      <li>Ensuring only authorised personnel have access</li>
+      <li>Promptly deactivating accounts for staff who leave</li>
+    </ul>
+    <p>You must notify us immediately if you suspect any unauthorised access to your workspace.</p>
+  </section>
+
+  <section id="use">
+    <h2><span class="num">4.</span> Acceptable Use</h2>
+    <p>You agree not to use the Service to:</p>
+    <ul>
+      <li>Enter false, misleading, or fabricated temperature readings</li>
+      <li>Circumvent or interfere with compliance or audit processes</li>
+      <li>Attempt to access other workspaces or accounts without authorisation</li>
+      <li>Reverse engineer, copy, or redistribute any part of the platform</li>
+      <li>Upload malicious files or attempt to compromise system security</li>
+      <li>Use the platform for any unlawful purpose</li>
+    </ul>
+    <p>Violation of acceptable use policies may result in immediate suspension or termination of your workspace.</p>
+  </section>
+
+  <section id="data">
+    <h2><span class="num">5.</span> Data &amp; Privacy</h2>
+    <p><strong>You own your data.</strong> All temperature logs, compliance records, driver signatures, and vehicle data entered into your workspace remain your property.</p>
+    <p>We process your data solely to provide the Service. We do not sell, share, or use your operational data for any purpose other than operating the platform. For full details on how we collect, store, and protect data, see our <a href="/privacy">Privacy Policy</a>.</p>
+    <p>You are responsible for ensuring that any personal data you store in Thermio (such as driver names) is handled in accordance with applicable privacy laws, including the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs) where applicable.</p>
+  </section>
+
+  <section id="compliance">
+    <h2><span class="num">6.</span> Compliance Responsibility</h2>
+    <p>Thermio provides tools to assist with temperature compliance record-keeping. However:</p>
+    <ul>
+      <li>We do not guarantee that use of the platform will satisfy any specific regulatory requirement, audit standard, or industry code</li>
+      <li>You are solely responsible for verifying that the platform meets your legal and regulatory obligations</li>
+      <li>Accuracy of all data entered (temperatures, odometer readings, dates) is the responsibility of the user entering it</li>
+      <li>Digitally locked compliance sheets reflect data as submitted — we cannot be held liable for errors in submitted records</li>
+    </ul>
+    <p>We recommend consulting your relevant industry regulator (e.g. DAFF, state health authorities, AQIS) to confirm your record-keeping obligations.</p>
+  </section>
+
+  <section id="ip">
+    <h2><span class="num">7.</span> Intellectual Property</h2>
+    <p>All software, design, trademarks, and content comprising the Thermio platform are the exclusive property of Thermio and its licensors. These terms do not grant you any rights to our intellectual property other than a limited, non-exclusive licence to use the Service as described herein.</p>
+    <p>You grant us a limited licence to host, store, and process your data for the purpose of providing the Service.</p>
+  </section>
+
+  <section id="billing">
+    <h2><span class="num">8.</span> Billing &amp; Subscriptions</h2>
+    <p>Workspace subscriptions are billed in advance on a monthly or annual basis depending on your plan. By providing payment details, you authorise us to charge the applicable fees.</p>
+    <ul>
+      <li>Fees are non-refundable except where required by Australian Consumer Law</li>
+      <li>We will provide at least 30 days notice of any price changes</li>
+      <li>Failure to pay may result in workspace suspension</li>
+      <li>Downgrades take effect at the end of the current billing period</li>
+    </ul>
+    <p>For pricing details see our <a href="/pricing">Pricing</a> page.</p>
+  </section>
+
+  <section id="liability">
+    <h2><span class="num">9.</span> Limitation of Liability</h2>
+    <p>To the maximum extent permitted by law:</p>
+    <ul>
+      <li>The Service is provided "as is" without warranty of any kind</li>
+      <li>We do not warrant that the Service will be uninterrupted, error-free, or meet any specific compliance requirement</li>
+      <li>We are not liable for any indirect, incidental, special, or consequential damages arising from your use of the Service</li>
+      <li>Our total liability to you for any claim shall not exceed the fees paid by you in the 3 months preceding the claim</li>
+    </ul>
+    <p>Nothing in these terms limits liability that cannot be excluded under Australian Consumer Law, including consumer guarantees.</p>
+  </section>
+
+  <section id="termination">
+    <h2><span class="num">10.</span> Termination</h2>
+    <p>You may cancel your workspace at any time by contacting us. Upon cancellation:</p>
+    <ul>
+      <li>Your workspace will remain accessible until the end of the current billing period</li>
+      <li>You may export your data at any time before termination</li>
+      <li>After termination, your data will be retained for 30 days then permanently deleted</li>
+    </ul>
+    <p>We may suspend or terminate your workspace immediately if you breach these terms, engage in fraudulent activity, or for non-payment after reasonable notice.</p>
+  </section>
+
+  <section id="changes">
+    <h2><span class="num">11.</span> Changes to Terms</h2>
+    <p>We may update these Terms and Conditions from time to time. We will notify you of material changes via email or an in-platform notice at least 14 days before the changes take effect. Continued use of the Service after that date constitutes acceptance of the updated terms.</p>
+  </section>
+
+  <section id="governing">
+    <h2><span class="num">12.</span> Governing Law</h2>
+    <p>These terms are governed by the laws of Western Australia, Australia. Any disputes arising from these terms or use of the Service shall be subject to the exclusive jurisdiction of the courts of Western Australia.</p>
+  </section>
+
+  <section id="contact">
+    <h2><span class="num">13.</span> Contact</h2>
+    <p>If you have any questions about these Terms and Conditions, please contact us:</p>
+    <div class="highlight-box">
+      <p><strong><%= appName %></strong><br>
+      Email: <a href="mailto:<%= legalEmail %>"><%= legalEmail %></a><br>
+      For general enquiries: <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a></p>
+    </div>
+  </section>
+
+</div>
+
+<%- include('../partials/public-footer') %>
+</body>
+</html>

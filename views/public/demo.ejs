@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Demo — <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;
+      --border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;
+      --blue:#3b82f6;--blue-light:#60a5fa;
+      --green:#22c55e;--yellow:#f59e0b;--red:#ef4444;
+      --radius:12px;
+    }
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;}
+    a{text-decoration:none;color:inherit;}
+
+    /* Nav */
+    .demo-nav{background:rgba(15,17,23,.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .demo-nav-logo{font-size:18px;font-weight:800;color:var(--blue-light);}
+    .demo-badge{background:rgba(59,130,246,.15);color:var(--blue-light);border:1px solid rgba(59,130,246,.3);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+    .demo-nav-right{display:flex;gap:12px;align-items:center;}
+    .btn-cta{background:var(--blue);color:#fff;padding:8px 18px;border-radius:9px;font-size:13px;font-weight:600;}
+
+    /* Layout */
+    .demo-layout{display:flex;min-height:calc(100vh - 60px);}
+    .demo-sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;}
+    .sidebar-section{padding:6px 20px 2px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-top:8px;}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;cursor:pointer;color:var(--muted);transition:background .15s;}
+    .sidebar-item:hover,.sidebar-item.active{background:rgba(59,130,246,.08);color:var(--blue-light);}
+    .sidebar-item.active{border-right:3px solid var(--blue);}
+    .demo-main{flex:1;padding:28px 32px;overflow-y:auto;}
+
+    /* Panel */
+    .panel{display:none;} .panel.active{display:block;}
+    .panel-title{font-size:22px;font-weight:800;margin-bottom:4px;}
+    .panel-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+    /* Cards */
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+    .card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+    /* Metrics */
+    .metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+    .metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 16px;}
+    .metric-val{font-size:28px;font-weight:800;line-height:1;}
+    .metric-lbl{font-size:12px;color:var(--muted);margin-top:6px;}
+
+    /* Table */
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{text-align:left;padding:10px 14px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.04em;text-transform:uppercase;}
+    td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+
+    /* Badges */
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-active{background:rgba(34,197,94,.15);color:#22c55e;}
+    .badge-inactive{background:rgba(107,114,128,.12);color:#9ca3af;}
+    .badge-driver{background:rgba(34,197,94,.12);color:#4ade80;}
+    .badge-office{background:rgba(96,165,250,.12);color:#60a5fa;}
+    .badge-admin{background:rgba(248,113,113,.12);color:#f87171;}
+    .badge-ok{background:rgba(34,197,94,.12);color:#22c55e;}
+    .badge-high{background:rgba(239,68,68,.15);color:#ef4444;}
+    .badge-low{background:rgba(251,191,36,.12);color:#f59e0b;}
+
+    /* Forms */
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;margin-top:14px;}
+    label:first-child{margin-top:0;}
+    input,select,textarea{background:var(--bg3);border:1.5px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-size:14px;width:100%;outline:none;font-family:inherit;transition:border-color .15s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+    /* Buttons */
+    .btn{padding:10px 22px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+    .btn:hover{opacity:.88;}
+    .btn-blue{background:var(--blue);color:#fff;}
+    .btn-ghost-red{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);padding:5px 12px;font-size:12px;}
+    .btn-ghost-green{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);padding:5px 12px;font-size:12px;}
+
+    /* Log entries */
+    .log-entry{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;}
+    .log-entry:last-child{border-bottom:none;}
+    .log-temp{font-size:20px;font-weight:800;min-width:64px;line-height:1;}
+    .log-meta{flex:1;}
+    .log-asset{font-size:13px;font-weight:600;margin-bottom:2px;}
+    .log-note{font-size:12px;color:var(--muted);}
+    .log-time{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+    /* Live cards */
+    .live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+    .live-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+    .live-temp{font-size:32px;font-weight:800;color:#60a5fa;line-height:1;margin:10px 0 6px;}
+    .live-status{font-size:11px;color:var(--muted);}
+
+    /* Compliance accordion */
+    .acc-week{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+    .acc-trigger{padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:14px;background:var(--bg3);user-select:none;}
+    .acc-trigger:hover{background:#252935;}
+    .acc-body{display:none;border-top:1px solid var(--border);}
+    .acc-body.open{display:block;}
+    .acc-day{padding:11px 18px;border-bottom:1px solid var(--border);font-size:13px;}
+    .acc-day:last-child{border-bottom:none;}
+    .acc-day-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+    .acc-day-date{font-weight:600;}
+    .acc-day-logs{color:var(--muted);font-size:12px;}
+
+    /* Date picker bar */
+    .date-bar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+    .date-bar input[type=date]{width:auto;flex:none;padding:8px 12px;font-size:13px;}
+    .date-bar .btn-sm{padding:7px 16px;font-size:13px;}
+
+    /* Inline alerts */
+    .msg-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e;padding:10px 14px;border-radius:9px;font-size:13px;margin-top:12px;}
+    .msg-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;padding:10px 14px;border-radius:9px;font-size:13px;margin-top:12px;}
+    .msg-info{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:#60a5fa;padding:10px 14px;border-radius:9px;font-size:13px;margin-top:12px;}
+
+    .demo-note{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--blue-light);margin-bottom:22px;}
+    .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+
+    /* Threshold indicator */
+    .temp-val{font-weight:700;}
+    .temp-ok{color:#22c55e;}
+    .temp-high{color:#ef4444;}
+    .temp-low{color:#f59e0b;}
+  </style>
+</head>
+<body>
+
+<div class="demo-nav">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="demo-nav-logo"><%= appName %></span>
+    <span class="demo-badge">Interactive Demo</span>
+  </div>
+  <div class="demo-nav-right">
+    <span style="font-size:13px;color:var(--muted);">Demo Workspace</span>
+    <a href="/pricing" class="btn-cta">Get Started</a>
+  </div>
+</div>
+
+<div class="demo-layout">
+  <div class="demo-sidebar">
+    <div class="sidebar-section">Main</div>
+    <div class="sidebar-item active" data-panel="home">🏠&nbsp; Dashboard</div>
+    <div class="sidebar-item" data-panel="assets">🚚&nbsp; Assets</div>
+    <div class="sidebar-item" data-panel="staff">👥&nbsp; Staff</div>
+
+    <div class="sidebar-section">Tools</div>
+    <div class="sidebar-item" data-panel="logs">🌡&nbsp; Log Temperature</div>
+    <div class="sidebar-item" data-panel="live">📡&nbsp; Live Monitor</div>
+    <div class="sidebar-item" data-panel="history">📋&nbsp; Compliance History</div>
+
+    <div class="sidebar-section">Admin</div>
+    <div class="sidebar-item" data-panel="add-asset">+&nbsp; Add Asset</div>
+    <div class="sidebar-item" data-panel="add-staff">+&nbsp; Add Staff</div>
+  </div>
+
+  <div class="demo-main">
+    <div class="demo-note">
+      This is a fully interactive demo. All data resets on page refresh. No data is stored or sent anywhere.
+    </div>
+
+    <!-- Dashboard -->
+    <div class="panel active" id="panel-home">
+      <div class="panel-title">Dashboard</div>
+      <div class="panel-sub">Overview of your workspace</div>
+      <div class="metrics-grid" id="homeMetrics"></div>
+      <div class="card">
+        <div class="card-title">Recent Temperature Logs</div>
+        <div id="recentActivity"></div>
+      </div>
+    </div>
+
+    <!-- Assets -->
+    <div class="panel" id="panel-assets">
+      <div class="panel-title">Assets</div>
+      <div class="panel-sub">Manage your vehicles and refrigeration units</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead><tr><th>Asset Name</th><th>Type</th><th>Temp Type</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="assetsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Staff -->
+    <div class="panel" id="panel-staff">
+      <div class="panel-title">Staff</div>
+      <div class="panel-sub">Manage staff accounts and roles</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Username</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="staffTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Log Temperature -->
+    <div class="panel" id="panel-logs">
+      <div class="panel-title">Log Temperature</div>
+      <div class="panel-sub">Record a new temperature reading</div>
+      <div class="card" style="max-width:520px;">
+        <div class="card-title">New Reading</div>
+        <label>Asset</label>
+        <select id="logAsset"></select>
+        <div class="row2">
+          <div>
+            <label>Temperature (°C)</label>
+            <input type="number" id="logTemp" step="0.1" placeholder="e.g. 3.2">
+          </div>
+          <div>
+            <label>Date</label>
+            <input type="date" id="logDate">
+          </div>
+        </div>
+        <label>Time</label>
+        <input type="time" id="logTime">
+        <label>Notes (optional)</label>
+        <textarea id="logNote" rows="2" placeholder="Any observations..."></textarea>
+        <button class="btn btn-blue" onclick="addLog()" style="margin-top:14px;width:100%;">Save Temperature Log</button>
+        <div id="logMsg"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Logs</div>
+        <div id="logsToday"></div>
+      </div>
+    </div>
+
+    <!-- Live Monitor -->
+    <div class="panel" id="panel-live">
+      <div class="panel-title">Live Monitor</div>
+      <div class="panel-sub">Current status of all active assets</div>
+      <div class="live-grid" id="liveGrid"></div>
+    </div>
+
+    <!-- Compliance History -->
+    <div class="panel" id="panel-history">
+      <div class="panel-title">Compliance History</div>
+      <div class="panel-sub">Archived weekly temperature records</div>
+
+      <div class="date-bar">
+        <input type="date" id="histDate">
+        <button class="btn btn-blue btn-sm" onclick="searchHistory()">Find Date</button>
+        <button class="btn" onclick="clearHistorySearch()" style="background:var(--bg3);color:var(--muted);padding:7px 14px;font-size:13px;">Clear</button>
+      </div>
+      <div id="historyNoResult" style="display:none;" class="msg-info">No temperature logs found for that date.</div>
+      <div id="historyAccordion"></div>
+    </div>
+
+    <!-- Add Asset -->
+    <div class="panel" id="panel-add-asset">
+      <div class="panel-title">Add Asset</div>
+      <div class="panel-sub">Register a new vehicle or refrigeration unit</div>
+      <div class="card" style="max-width:500px;">
+        <div class="card-title">Asset Details</div>
+        <label>Asset Name / Registration</label>
+        <input type="text" id="assetName" placeholder="e.g. Fridge Unit 1 or REG-001">
+        <label>Asset Type</label>
+        <select id="assetType" onchange="autoTempType()">
+          <option>Vehicle</option>
+          <option>Fridge</option>
+          <option>Freezer</option>
+          <option>Walk-In Fridge</option>
+          <option>Walk-In Freezer</option>
+          <option>Freezer Room</option>
+        </select>
+        <label>Temperature Type</label>
+        <select id="assetTempType">
+          <option value="cabin">Cabin (Ambient)</option>
+          <option value="chiller">Chiller (0°C to 4°C)</option>
+          <option value="freezer">Freezer (-18°C to -25°C)</option>
+        </select>
+        <button class="btn btn-blue" onclick="addAsset()" style="margin-top:16px;width:100%;">Add Asset</button>
+        <div id="assetMsg"></div>
+      </div>
+    </div>
+
+    <!-- Add Staff -->
+    <div class="panel" id="panel-add-staff">
+      <div class="panel-title">Add Staff Member</div>
+      <div class="panel-sub">Create a new staff account</div>
+      <div class="card" style="max-width:500px;">
+        <div class="card-title">Staff Details</div>
+        <div class="row2">
+          <div><label>First Name</label><input type="text" id="staffFirst" placeholder="Emma"></div>
+          <div><label>Last Name</label><input type="text" id="staffLast" placeholder="Wilson"></div>
+        </div>
+        <label>Role</label>
+        <select id="staffRole">
+          <option value="driver">Driver — Temperature logging only</option>
+          <option value="office">Office — View all data, sign off sheets</option>
+          <option value="admin">Admin — Full access</option>
+        </select>
+        <button class="btn btn-blue" onclick="addStaff()" style="margin-top:16px;width:100%;">Add Staff Member</button>
+        <div id="staffMsg"></div>
+      </div>
+    </div>
+
+  </div><!-- /demo-main -->
+</div><!-- /demo-layout -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// THERMIO DEMO — Pure client-side. No fetch calls. No API.
+// Resets fully on page refresh (sessionStorage).
+// ═══════════════════════════════════════════════════════════════════
+
+// Workspace thresholds (demo defaults)
+const THRESHOLDS = {
+  cabin:   { min: null, max: null },
+  chiller: { min: 0,    max: 4   },
+  freezer: { min: -25,  max: -18 }
+};
+
+// ── State (session only — resets on refresh) ─────────────────────
+function defaultState() {
+  return {
+    assets: [
+      { id: 'a1', name: 'Fridge Unit 1',  type: 'Fridge',       tempType: 'chiller', status: 'active' },
+      { id: 'a2', name: 'Freezer Room A', type: 'Freezer Room', tempType: 'freezer', status: 'active' },
+      { id: 'a3', name: 'Delivery Van 04',type: 'Vehicle',       tempType: 'cabin',   status: 'active' }
+    ],
+    staff: [
+      { id: 's1', name: 'Jason Miller',  username: 'jasonm',  role: 'driver', status: 'active' },
+      { id: 's2', name: 'Rachel Torres', username: 'rachelt', role: 'office', status: 'active' },
+      { id: 's3', name: 'Ben Harris',    username: 'benh',    role: 'admin',  status: 'active' }
+    ],
+    logs: []
+  };
+}
+
+function getState() {
+  const raw = sessionStorage.getItem('_thermio_demo');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+
+function saveState(s) {
+  sessionStorage.setItem('_thermio_demo', JSON.stringify(s));
+}
+
+function state() {
+  let s = getState();
+  if (!s) { s = defaultState(); saveState(s); }
+  return s;
+}
+
+// ── Navigation ───────────────────────────────────────────────────
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const panelId = this.dataset.panel;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById('panel-' + panelId).classList.add('active');
+    this.classList.add('active');
+    render();
+  });
+});
+
+// ── Threshold check ──────────────────────────────────────────────
+function checkThreshold(temp, tempType) {
+  const r = THRESHOLDS[tempType];
+  if (!r || temp === null || temp === undefined) return 'ok';
+  if (r.min !== null && temp < r.min) return 'low';
+  if (r.max !== null && temp > r.max) return 'high';
+  return 'ok';
+}
+
+function tempClass(status) {
+  return status === 'high' ? 'temp-high' : status === 'low' ? 'temp-low' : 'temp-ok';
+}
+
+function tempBadge(status) {
+  if (status === 'high') return '<span class="badge badge-high">HIGH</span>';
+  if (status === 'low')  return '<span class="badge badge-low">LOW</span>';
+  return '<span class="badge badge-ok">OK</span>';
+}
+
+// ── Render all panels ────────────────────────────────────────────
+function render() {
+  const s = state();
+  renderHome(s);
+  renderAssets(s);
+  renderStaff(s);
+  renderLogs(s);
+  renderLive(s);
+  renderHistory(s);
+  populateLogDropdown(s);
+}
+
+function renderHome(s) {
+  const activeAssets = s.assets.filter(a => a.status === 'active').length;
+  const activeStaff  = s.staff.filter(u => u.status === 'active').length;
+  const totalLogs    = s.logs.length;
+  const todayStr     = new Date().toISOString().split('T')[0];
+  const todayLogs    = s.logs.filter(l => l.date === todayStr).length;
+
+  document.getElementById('homeMetrics').innerHTML = [
+    { val: activeAssets, lbl: 'Active Assets',  col: '#22c55e' },
+    { val: activeStaff,  lbl: 'Active Staff',   col: '#3b82f6' },
+    { val: totalLogs,    lbl: 'Total Logs',      col: '#a78bfa' },
+    { val: todayLogs,    lbl: 'Logs Today',      col: '#f59e0b' }
+  ].map(m =>
+    `<div class="metric"><div class="metric-val" style="color:${m.col}">${m.val}</div><div class="metric-lbl">${m.lbl}</div></div>`
+  ).join('');
+
+  const recent = s.logs.slice().reverse().slice(0, 6);
+  const el = document.getElementById('recentActivity');
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty-state">No logs yet. Go to Log Temperature to add your first reading.</div>';
+    return;
+  }
+  const asset = id => s.assets.find(a => a.id === id);
+  el.innerHTML = recent.map(l => {
+    const a = asset(l.assetId);
+    const tType = a ? a.tempType : 'cabin';
+    const st = checkThreshold(l.temp, tType);
+    const cls = tempClass(st);
+    return `<div class="log-entry">
+      <div class="log-temp ${cls}">${l.temp}°C</div>
+      <div class="log-meta">
+        <div class="log-asset">${l.assetName}</div>
+        <div class="log-note">${l.note || ''}</div>
+      </div>
+      <div class="log-time">${l.date} ${l.time}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAssets(s) {
+  const tbody = document.getElementById('assetsTable');
+  if (!s.assets.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No assets yet. Add one via the sidebar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = s.assets.map(a => {
+    const btnCls = a.status === 'active' ? 'btn-ghost-red' : 'btn-ghost-green';
+    const btnTxt = a.status === 'active' ? 'Deactivate' : 'Activate';
+    const tLabel = { cabin:'Cabin', chiller:'Chiller', freezer:'Freezer' }[a.tempType] || a.tempType;
+    const tRange = { cabin:'', chiller:' (0–4°C)', freezer:' (-25 to -18°C)' }[a.tempType] || '';
+    return `<tr>
+      <td><strong>${esc(a.name)}</strong></td>
+      <td>${esc(a.type)}</td>
+      <td>${tLabel}${tRange}</td>
+      <td><span class="badge badge-${a.status}">${a.status}</span></td>
+      <td><button class="btn ${btnCls}" onclick="toggleAsset('${a.id}')">${btnTxt}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStaff(s) {
+  const tbody = document.getElementById('staffTable');
+  if (!s.staff.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No staff yet. Add one via the sidebar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = s.staff.map(u => {
+    const btnCls = u.status === 'active' ? 'btn-ghost-red' : 'btn-ghost-green';
+    const btnTxt = u.status === 'active' ? 'Deactivate' : 'Activate';
+    return `<tr>
+      <td><strong>${esc(u.name)}</strong></td>
+      <td><span class="badge badge-${u.role}">${u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span></td>
+      <td style="font-family:monospace;font-size:12px;">${esc(u.username)}</td>
+      <td><span class="badge badge-${u.status === 'active' ? 'active' : 'inactive'}">${u.status}</span></td>
+      <td><button class="btn ${btnCls}" onclick="toggleStaff('${u.id}')">${btnTxt}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLogs(s) {
+  const el = document.getElementById('logsToday');
+  const recent = s.logs.slice().reverse().slice(0, 20);
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty-state">No logs yet.</div>';
+    return;
+  }
+  const assetMap = {};
+  s.assets.forEach(a => { assetMap[a.id] = a; });
+  el.innerHTML = recent.map(l => {
+    const a = assetMap[l.assetId];
+    const tType = a ? a.tempType : 'cabin';
+    const st = checkThreshold(l.temp, tType);
+    const cls = tempClass(st);
+    return `<div class="log-entry">
+      <div class="log-temp ${cls}">${l.temp}°C</div>
+      <div class="log-meta">
+        <div class="log-asset">${esc(l.assetName)} ${tempBadge(st)}</div>
+        <div class="log-note">${l.note ? esc(l.note) : '<span style="color:var(--muted)">No notes</span>'}</div>
+      </div>
+      <div class="log-time">${l.date}<br>${l.time}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderLive(s) {
+  const grid = document.getElementById('liveGrid');
+  const active = s.assets.filter(a => a.status === 'active');
+  if (!active.length) {
+    grid.innerHTML = '<div class="empty-state">No active assets.</div>';
+    return;
+  }
+  grid.innerHTML = active.map(a => {
+    const assetLogs = s.logs.filter(l => l.assetId === a.id);
+    const last = assetLogs.length ? assetLogs[assetLogs.length - 1] : null;
+    const tempStr = last ? `${last.temp}°C` : '—';
+    const st = last ? checkThreshold(last.temp, a.tempType) : null;
+    const tCls = st ? tempClass(st) : '';
+    const hasData = !!last;
+    return `<div class="live-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <strong style="font-size:14px;">${esc(a.name)}</strong>
+        <span class="badge badge-${hasData ? 'active' : 'inactive'}">${hasData ? 'Active' : 'No Data'}</span>
+      </div>
+      <div class="live-temp ${tCls}">${tempStr}</div>
+      <div class="live-status">${a.type} &middot; ${a.tempType}</div>
+      ${last ? `<div style="font-size:11px;color:var(--muted);margin-top:8px;">Last: ${last.date} ${last.time}</div>` : ''}
+      ${st && st !== 'ok' ? `<div style="margin-top:8px;">${tempBadge(st)} <span style="font-size:12px;color:var(--muted);">Out of range</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(s) {
+  const el = document.getElementById('historyAccordion');
+  if (!s.logs.length) {
+    el.innerHTML = '<div class="empty-state" style="border:1px dashed var(--border);border-radius:10px;">No compliance records yet. Add temperature logs to build history.</div>';
+    return;
+  }
+
+  // Group by ISO week
+  const weeks = {};
+  s.logs.forEach(l => {
+    const wk = getWeekKey(l.date);
+    if (!weeks[wk]) weeks[wk] = {};
+    if (!weeks[wk][l.date]) weeks[wk][l.date] = [];
+    weeks[wk][l.date].push(l);
+  });
+
+  const assetMap = {};
+  s.assets.forEach(a => { assetMap[a.id] = a; });
+
+  const sortedWeeks = Object.keys(weeks).sort().reverse();
+  el.innerHTML = sortedWeeks.map((wk, wi) => {
+    const days = Object.keys(weeks[wk]).sort().reverse();
+    const dayCount = days.length;
+    const daysHtml = days.map(date => {
+      const dayLogs = weeks[wk][date];
+      const logsHtml = dayLogs.map(l => {
+        const a = assetMap[l.assetId];
+        const tType = a ? a.tempType : 'cabin';
+        const st = checkThreshold(l.temp, tType);
+        const cls = tempClass(st);
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--muted)">${l.time} &mdash; ${esc(l.assetName)}</span>
+          <span class="${cls}" style="font-size:13px;font-weight:700;">${l.temp}°C ${tempBadge(st)}</span>
+        </div>`;
+      }).join('');
+      return `<div class="acc-day" data-date="${date}">
+        <div class="acc-day-header">
+          <span class="acc-day-date">${formatDate(date)}</span>
+          <span class="acc-day-logs">${dayLogs.length} log${dayLogs.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div style="margin-top:8px;">${logsHtml}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="acc-week">
+      <div class="acc-trigger" onclick="toggleHistAcc('hacc${wi}')">
+        <span>Week of ${wk} <span style="background:rgba(59,130,246,.15);color:#60a5fa;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;margin-left:8px;">${dayCount} day${dayCount !== 1 ? 's' : ''}</span></span>
+        <span style="color:var(--muted);font-size:12px;">▾</span>
+      </div>
+      <div class="acc-body${wi === 0 ? ' open' : ''}" id="hacc${wi}">${daysHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistAcc(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function searchHistory() {
+  const dateVal = document.getElementById('histDate').value;
+  if (!dateVal) return;
+  const s = state();
+  const noRes = document.getElementById('historyNoResult');
+  const found = s.logs.some(l => l.date === dateVal);
+  if (!found) {
+    noRes.style.display = 'block';
+    setTimeout(() => { noRes.style.display = 'none'; }, 2500);
+    return;
+  }
+  noRes.style.display = 'none';
+  // Scroll to the day row
+  const dayEl = document.querySelector(`[data-date="${dateVal}"]`);
+  if (dayEl) {
+    // Open parent accordion
+    const body = dayEl.closest('.acc-body');
+    if (body) body.classList.add('open');
+    dayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    dayEl.style.background = 'rgba(59,130,246,0.08)';
+    setTimeout(() => { dayEl.style.background = ''; }, 2000);
+  }
+}
+
+function clearHistorySearch() {
+  document.getElementById('histDate').value = '';
+  document.getElementById('historyNoResult').style.display = 'none';
+}
+
+function populateLogDropdown(s) {
+  const sel = document.getElementById('logAsset');
+  const active = s.assets.filter(a => a.status === 'active');
+  sel.innerHTML = active.length
+    ? active.map(a => `<option value="${a.id}" data-name="${esc(a.name)}" data-type="${a.tempType}">${esc(a.name)}</option>`).join('')
+    : '<option disabled>No active assets</option>';
+}
+
+// ── Actions ──────────────────────────────────────────────────────
+function addAsset() {
+  const name = document.getElementById('assetName').value.trim();
+  const type = document.getElementById('assetType').value;
+  const tempType = document.getElementById('assetTempType').value;
+  const msg = document.getElementById('assetMsg');
+  if (!name) { msg.innerHTML = '<div class="msg-error">Please enter an asset name.</div>'; return; }
+  const s = state();
+  if (s.assets.find(a => a.name.toLowerCase() === name.toLowerCase())) {
+    msg.innerHTML = '<div class="msg-error">An asset with that name already exists.</div>'; return;
+  }
+  s.assets.push({ id: 'a' + Date.now(), name, type, tempType, status: 'active' });
+  saveState(s);
+  document.getElementById('assetName').value = '';
+  msg.innerHTML = `<div class="msg-success">Asset "<strong>${esc(name)}</strong>" added successfully.</div>`;
+  setTimeout(() => { msg.innerHTML = ''; }, 3000);
+  render();
+}
+
+function addStaff() {
+  const first = document.getElementById('staffFirst').value.trim();
+  const last  = document.getElementById('staffLast').value.trim();
+  const role  = document.getElementById('staffRole').value;
+  const msg   = document.getElementById('staffMsg');
+  if (!first) { msg.innerHTML = '<div class="msg-error">Please enter a first name.</div>'; return; }
+  const s = state();
+  const username = (first.toLowerCase() + (last ? last[0].toLowerCase() : '')).replace(/[^a-z0-9]/g, '');
+  s.staff.push({ id: 's' + Date.now(), name: (first + ' ' + last).trim(), username, role, status: 'active' });
+  saveState(s);
+  document.getElementById('staffFirst').value = '';
+  document.getElementById('staffLast').value  = '';
+  msg.innerHTML = `<div class="msg-success"><strong>${esc(first)}</strong> added as ${role}.</div>`;
+  setTimeout(() => { msg.innerHTML = ''; }, 3000);
+  render();
+}
+
+function addLog() {
+  const sel = document.getElementById('logAsset');
+  const msg = document.getElementById('logMsg');
+  if (!sel || !sel.options.length || sel.options[0].disabled) {
+    msg.innerHTML = '<div class="msg-error">No active assets. Add an asset first.</div>'; return;
+  }
+  const opt      = sel.options[sel.selectedIndex];
+  const assetId  = sel.value;
+  const assetName= opt.dataset.name || opt.text;
+  const tempRaw  = document.getElementById('logTemp').value;
+  const temp     = parseFloat(tempRaw);
+  const dateVal  = document.getElementById('logDate').value;
+  const timeVal  = document.getElementById('logTime').value;
+  const note     = document.getElementById('logNote').value.trim();
+  if (tempRaw === '' || isNaN(temp)) {
+    msg.innerHTML = '<div class="msg-error">Please enter a valid temperature.</div>'; return;
+  }
+  const s = state();
+  s.logs.push({ id: 'l' + Date.now(), assetId, assetName, temp, date: dateVal, time: timeVal, note });
+  saveState(s);
+  document.getElementById('logTemp').value = '';
+  document.getElementById('logNote').value = '';
+  const a = s.assets.find(x => x.id === assetId);
+  const tType = a ? a.tempType : 'cabin';
+  const st = checkThreshold(temp, tType);
+  if (st !== 'ok') {
+    msg.innerHTML = `<div class="msg-error">Log saved. <strong>Warning:</strong> ${temp}°C is ${st === 'high' ? 'above' : 'below'} the expected range for ${tType}.</div>`;
+  } else {
+    msg.innerHTML = '<div class="msg-success">Temperature log saved successfully.</div>';
+  }
+  setTimeout(() => { msg.innerHTML = ''; }, 3500);
+  render();
+}
+
+function toggleAsset(id) {
+  const s = state();
+  const a = s.assets.find(x => x.id === id);
+  if (a) { a.status = a.status === 'active' ? 'inactive' : 'active'; saveState(s); render(); }
+}
+
+function toggleStaff(id) {
+  const s = state();
+  const u = s.staff.find(x => x.id === id);
+  if (u) { u.status = u.status === 'active' ? 'inactive' : 'active'; saveState(s); render(); }
+}
+
+function autoTempType() {
+  const type = document.getElementById('assetType').value;
+  const map = { Vehicle:'cabin', Fridge:'chiller', 'Walk-In Fridge':'chiller', Freezer:'freezer', 'Walk-In Freezer':'freezer', 'Freezer Room':'freezer' };
+  const tt = document.getElementById('assetTempType');
+  if (map[type]) tt.value = map[type];
+}
+
+// ── Utility ──────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getWeekKey(dateStr) {
+  if (!dateStr) return 'Unknown';
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  return d.toISOString().split('T')[0];
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return dateStr;
+  try {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+  } catch(e) { return dateStr; }
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+(function init() {
+  // Set defaults for date/time inputs
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const h = today.getHours().toString().padStart(2,'0');
+  const m = today.getMinutes().toString().padStart(2,'0');
+  const logDate = document.getElementById('logDate');
+  const logTime = document.getElementById('logTime');
+  const histDate = document.getElementById('histDate');
+  if (logDate) logDate.value = todayStr;
+  if (logTime) logTime.value = h + ':' + m;
+  if (histDate) histDate.value = todayStr;
+
+  render();
+
+  // Auto-refresh live monitor every 5 seconds when visible
+  setInterval(function() {
+    if (document.getElementById('panel-live').classList.contains('active')) {
+      renderLive(state());
+    }
+  }, 5000);
+})();
+</script>
+
+</body>
+</html>

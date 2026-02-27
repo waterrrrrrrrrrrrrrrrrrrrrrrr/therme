@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy – <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;--green:#22c55e;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.8;}
+    a{text-decoration:none;color:var(--blue-light);}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .nav-links a.nav-active {
+      color: var(--text) !important;
+      background: rgba(59,130,246,0.12);
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .page{max-width:860px;margin:0 auto;padding:72px 24px 100px;}
+    .page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border);}
+    .page-header h1{font-size:40px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px;}
+    .page-header .meta{color:var(--muted);font-size:14px;}
+    .toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:48px;}
+    .toc h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;}
+    .toc ol{padding-left:20px;}
+    .toc li{font-size:14px;padding:3px 0;}
+    .toc a{color:var(--blue-light);}
+    section{margin-bottom:44px;}
+    section h2{font-size:20px;font-weight:700;margin-bottom:14px;padding-top:8px;}
+    section h2 .num{color:var(--muted);font-weight:400;margin-right:6px;}
+    p{color:var(--muted);font-size:15px;margin-bottom:14px;}
+    ul,ol{color:var(--muted);font-size:15px;padding-left:22px;margin-bottom:14px;}
+    li{padding:3px 0;}
+    strong{color:var(--text);}
+    .highlight-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:20px 0;}
+    .highlight-box p{margin:0;font-size:14px;}
+    .data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    .data-table th{text-align:left;padding:10px 14px;background:var(--bg2);color:var(--text);font-weight:600;border:1px solid var(--border);}
+    .data-table td{padding:10px 14px;color:var(--muted);border:1px solid var(--border);vertical-align:top;}
+    footer{text-align:center;padding:40px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:60px;}
+    footer a{color:var(--blue-light);}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Privacy Policy</h1>
+    <p class="meta">Last updated: <%= new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) %> &nbsp;·&nbsp; Version 1.0</p>
+  </div>
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#what-we-collect">What We Collect</a></li>
+      <li><a href="#how-we-use">How We Use Your Data</a></li>
+      <li><a href="#storage">Data Storage &amp; Security</a></li>
+      <li><a href="#retention">Data Retention</a></li>
+      <li><a href="#sharing">Data Sharing</a></li>
+      <li><a href="#cookies">Cookies &amp; Sessions</a></li>
+      <li><a href="#rights">Your Rights</a></li>
+      <li><a href="#children">Children's Privacy</a></li>
+      <li><a href="#changes">Changes to this Policy</a></li>
+      <li><a href="#contact">Contact &amp; Complaints</a></li>
+    </ol>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Plain English summary:</strong> Thermio collects only the data needed to run the temperature compliance platform. Your operational records (logs, signatures, vehicle data) belong to you. We don't sell data. We don't advertise. We store data securely in Australia. You can request deletion at any time.</p>
+  </div>
+
+  <section id="overview">
+    <h2><span class="num">1.</span> Overview</h2>
+    <p>Thermio ("we", "us", "our") is committed to protecting the privacy of individuals who use our temperature compliance platform. This Privacy Policy explains how we collect, use, store, and protect personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs).</p>
+    <p>This policy applies to all users of the Thermio platform, including workspace administrators, office staff, and drivers.</p>
+  </section>
+
+  <section id="what-we-collect">
+    <h2><span class="num">2.</span> What We Collect</h2>
+    <p>We collect two categories of information:</p>
+
+    <p><strong>Account &amp; User Information</strong></p>
+    <table class="data-table">
+      <tr><th>Data</th><th>Why we collect it</th></tr>
+      <tr><td>Name</td><td>Identifying users in logs and sign-offs</td></tr>
+      <tr><td>Username</td><td>Authentication</td></tr>
+      <tr><td>Password (hashed)</td><td>Authentication — never stored in plain text</td></tr>
+      <tr><td>Role</td><td>Access control (driver, office, admin)</td></tr>
+      <tr><td>Account status</td><td>Active/suspended/inactive management</td></tr>
+    </table>
+
+    <p><strong>Operational Data</strong></p>
+    <table class="data-table">
+      <tr><th>Data</th><th>Why we collect it</th></tr>
+      <tr><td>Temperature readings</td><td>Core compliance record</td></tr>
+      <tr><td>Vehicle &amp; odometer readings</td><td>Compliance and maintenance tracking</td></tr>
+      <tr><td>Driver signatures (base64 image)</td><td>Digital sign-off on compliance sheets</td></tr>
+      <tr><td>Shift start/end timestamps</td><td>Compliance and performance reporting</td></tr>
+      <tr><td>Vehicle notes</td><td>Maintenance and operational tracking</td></tr>
+      <tr><td>Admin sign-off metadata (IP, browser, timestamp)</td><td>Audit trail for locked compliance sheets</td></tr>
+    </table>
+
+    <p><strong>Technical Data</strong></p>
+    <ul>
+      <li>Login session data (used to keep you signed in securely)</li>
+      <li>IP address (recorded at admin sign-off for audit purposes)</li>
+      <li>Browser user agent (recorded at admin sign-off for audit purposes)</li>
+      <li>Platform event logs (login events, setting changes, backup/restore actions)</li>
+    </ul>
+
+    <p>We do not collect payment card numbers directly. Payment processing is handled by third-party providers subject to their own privacy policies.</p>
+  </section>
+
+  <section id="how-we-use">
+    <h2><span class="num">3.</span> How We Use Your Data</h2>
+    <p>We use the information we collect solely to:</p>
+    <ul>
+      <li>Provide, operate, and maintain the Thermio platform</li>
+      <li>Authenticate users and enforce access controls</li>
+      <li>Generate compliance sheets, exception reports, and performance summaries</li>
+      <li>Send system notifications relevant to your workspace (e.g. temperature alerts)</li>
+      <li>Fulfil data export and backup requests</li>
+      <li>Investigate and resolve security incidents</li>
+      <li>Comply with legal obligations</li>
+    </ul>
+    <p>We do <strong>not</strong> use your data for advertising, marketing profiling, or sale to third parties.</p>
+  </section>
+
+  <section id="storage">
+    <h2><span class="num">4.</span> Data Storage &amp; Security</h2>
+    <p>Your workspace data is stored securely on the server hosting your Thermio instance. Security measures in place include:</p>
+    <ul>
+      <li>Passwords are stored securely and are never readable — not even by administrators</li>
+      <li>Each workspace's data is completely separate — no other workspace can access your records</li>
+      <li>Role-based access ensures staff only see what is relevant to their role</li>
+      <li>Automatic account lockout after repeated failed login attempts</li>
+      <li>Digitally locked compliance sheets with tamper-evident records</li>
+      <li>Full audit log of all administrative actions</li>
+    </ul>
+    <p>For more details see our <a href="/security">Security</a> page.</p>
+  </section>
+
+  <section id="retention">
+    <h2><span class="num">5.</span> Data Retention</h2>
+    <p>We retain your data for as long as your workspace is active. Default retention periods:</p>
+    <ul>
+      <li><strong>Temperature logs</strong> — 365 days by default (configurable per workspace by the platform admin)</li>
+      <li><strong>Workspace event logs</strong> — 365 days, auto-purged on write</li>
+      <li><strong>Notification records</strong> — 90 days</li>
+      <li><strong>Account data</strong> — retained until account deletion or workspace termination</li>
+    </ul>
+    <p>Upon workspace termination or cancellation, all data is retained for 30 days to allow export, then permanently deleted.</p>
+    <p>You may request deletion of your data at any time by contacting us (see Section 11).</p>
+  </section>
+
+  <section id="sharing">
+    <h2><span class="num">6.</span> Data Sharing</h2>
+    <p>We do not sell, rent, or share your personal information with third parties except in the following circumstances:</p>
+    <ul>
+      <li><strong>Service providers</strong> — hosting and infrastructure providers who process data on our behalf under data processing agreements</li>
+      <li><strong>Legal requirements</strong> — where required by law, court order, or government authority</li>
+      <li><strong>Business transfer</strong> — in the event of a merger or acquisition, with advance notice to you</li>
+    </ul>
+    <p>Any third-party service providers are required to maintain the confidentiality and security of your data and may not use it for any other purpose.</p>
+  </section>
+
+  <section id="cookies">
+    <h2><span class="num">7.</span> Cookies &amp; Sessions</h2>
+    <p>Thermio uses a single login cookie to keep you signed in. This cookie is cleared when you log out or close your browser, and contains no personal information.</p>
+    <p>We also remember your display preferences (such as dark mode) in your browser's local storage. This stays on your device and is never sent to our servers.</p>
+    <p>We do not use advertising cookies, tracking pixels, or third-party analytics.</p>
+  </section>
+
+  <section id="rights">
+    <h2><span class="num">8.</span> Your Rights</h2>
+    <p>Under the Australian Privacy Principles, you have the right to:</p>
+    <ul>
+      <li><strong>Access</strong> — request a copy of the personal information we hold about you</li>
+      <li><strong>Correction</strong> — request correction of inaccurate or incomplete information</li>
+      <li><strong>Deletion</strong> — request deletion of your personal information (subject to legal retention obligations)</li>
+      <li><strong>Portability</strong> — export your workspace data at any time via the Backup &amp; Export feature</li>
+      <li><strong>Opt-out</strong> — opt out of non-essential communications</li>
+    </ul>
+    <p>Workspace admins can manage most of these rights directly within the platform. For requests that cannot be handled in-platform, contact us at the address in Section 11. We will respond within 30 days.</p>
+  </section>
+
+  <section id="children">
+    <h2><span class="num">9.</span> Children's Privacy</h2>
+    <p>Thermio is a professional business platform not directed at individuals under the age of 18. We do not knowingly collect personal information from anyone under 18. If you believe a minor has provided us with personal information, please contact us immediately and we will delete it.</p>
+  </section>
+
+  <section id="changes">
+    <h2><span class="num">10.</span> Changes to this Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify workspace administrators of material changes via email or in-platform notice at least 14 days before the changes take effect. The "Last updated" date at the top of this page will always reflect the most recent version.</p>
+    <p>Continued use of the Service after changes take effect constitutes acceptance of the updated policy.</p>
+  </section>
+
+  <section id="contact">
+    <h2><span class="num">11.</span> Contact &amp; Complaints</h2>
+    <p>For privacy-related enquiries, access requests, or complaints:</p>
+    <div class="highlight-box">
+      <p><strong><%= appName %> — Privacy Officer</strong><br>
+      Email: <a href="mailto:<%= privacyEmail %>"><%= privacyEmail %></a><br>
+      General enquiries: <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a></p>
+    </div>
+    <p>If you are not satisfied with our response to a privacy complaint, you may contact the <strong>Office of the Australian Information Commissioner (OAIC)</strong>:</p>
+    <ul>
+      <li>Website: <a href="https://www.oaic.gov.au" target="_blank" rel="noopener">www.oaic.gov.au</a></li>
+      <li>Phone: 1300 363 992</li>
+    </ul>
+  </section>
+
+</div>
+
+<%- include('../partials/public-footer') %>
+</body>
+</html>

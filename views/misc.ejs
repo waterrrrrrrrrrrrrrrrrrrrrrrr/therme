@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>More Tools – <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .misc-wrapper { max-width: 860px; margin: 0 auto; padding: var(--sp-xl) var(--sp-lg); }
+    .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md); }
+    @media(max-width:600px){ .tools-grid { grid-template-columns: 1fr; } }
+
+    .tool-card {
+      background: linear-gradient(180deg, var(--bg2), var(--bg3));
+      border-radius: var(--radius-lg); padding: var(--sp-lg) 22px;
+      border: 1px solid var(--border2); display: flex; flex-direction: column; gap: 8px;
+      transition: transform .15s, border-color .15s; text-decoration: none;
+    }
+    .tool-card:hover { transform: translateY(-2px); border-color: var(--blue); }
+    .tool-card.blue   { border-left: 3px solid var(--blue); }
+    .tool-card.green  { border-left: 3px solid var(--green); }
+    .tool-card.yellow { border-left: 3px solid var(--yellow); }
+    .tool-card.red    { border-left: 3px solid var(--red); }
+    .tool-card.purple { border-left: 3px solid var(--purple); }
+
+    .tool-card h2 { font-size: 16px; font-weight: 700; margin: 0; color: var(--text); }
+    .tool-card p  { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+    .tool-link {
+      display: block; text-align: center; padding: 9px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; text-decoration: none; margin-top: 4px;
+    }
+    .tool-card.blue   .tool-link { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .tool-card.green  .tool-link { background: rgba(34,197,94,0.12);  color: #22c55e; }
+    .tool-card.yellow .tool-link { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    .tool-card.red    .tool-link { background: rgba(239,68,68,0.12);  color: #f87171; }
+    .tool-card.purple .tool-link { background: rgba(124,58,237,0.12); color: #a78bfa; }
+    .tool-link:hover { filter: brightness(1.15); }
+
+    body.light-mode .tool-card { background: #fff; border-color: #e0e2e8; }
+    body.light-mode .tool-card h2 { color: #1a1d24; }
+    body.light-mode .tool-card p  { color: #4b5563; }
+  </style>
+</head>
+<body id="appBody">
+
+<%- include('partials/header', { activeNav: '' }) %>
+
+<div class="misc-wrapper">
+  <a class="topbar-btn back-btn" href="/app" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:var(--sp-lg);">← Back to Dashboard</a>
+
+  <h1 style="font-size:24px;font-weight:800;margin:0 0 4px;">More Tools</h1>
+  <p style="color:var(--text-muted);font-size:14px;margin:0 0 var(--sp-xl);">Additional utilities and views for <%= workspace.name %></p>
+
+  <p class="section-label">Available Tools</p>
+  <div class="tools-grid">
+
+    <div class="tool-card blue">
+      <h2>📡 Live View</h2>
+      <p>Real-time temperature readings across all active assets</p>
+      <a class="tool-link" href="/app/live">Open Live View</a>
+    </div>
+
+    <div class="tool-card green">
+      <h2>🖥 Monitor Board</h2>
+      <p>Full-screen display board for warehouse or office monitoring</p>
+      <a class="tool-link" href="/app/monitor">Open Monitor</a>
+    </div>
+
+    <div class="tool-card yellow">
+      <h2>📋 Event Console</h2>
+      <p>Chronological log of all system events and temperature records</p>
+      <a class="tool-link" href="/app/logs">Open Console</a>
+    </div>
+
+    <div class="tool-card purple">
+      <h2>📷 Scan Asset</h2>
+      <p>QR scan entry point for drivers to start a temperature log</p>
+      <a class="tool-link" href="/app/scan">Open Scanner</a>
+    </div>
+
+    <div class="tool-card red">
+      <h2>📄 Exports</h2>
+      <p>Download temperature reports and compliance data as CSV or PDF</p>
+      <a class="tool-link" href="/app/exports">Open Exports</a>
+    </div>
+
+    <div class="tool-card blue">
+      <h2>⚠️ Exceptions</h2>
+      <p>Out-of-range temperatures, missed logs and overdue assets</p>
+      <a class="tool-link" href="/app/exceptions">View Exceptions</a>
+    </div>
+
+  </div>
+
+  <div class="home-footer" style="margin-top:var(--sp-xl);">
+    Logged in as <strong><%= user.role.toUpperCase() %></strong> &bull; <a href="/logout">Sign Out</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

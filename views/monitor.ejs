@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Monitor – <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="60">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    * { box-sizing: border-box; }
+    .monitor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 28px; }
+    .tile { background: var(--bg-card); border: 1.5px solid var(--border2); border-radius: 14px; padding: 22px 24px; position: relative; transition: border-color 0.3s; }
+    .tile.status-active { border-color: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.15); }
+    .tile.status-overdue { border-color: #ef4444; box-shadow: 0 0 16px rgba(239,68,68,0.2); animation: pulse-red 2s infinite; }
+    .tile.status-idle { border-color: var(--border); opacity: 0.7; }
+    @keyframes _pulse_disabled-red { 0%,100% { box-shadow: 0 0 8px rgba(239,68,68,0.2); } 50% { box-shadow: 0 0 24px rgba(239,68,68,0.4); } }
+    .tile-rego { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: var(--text); margin-bottom: 4px; }
+    .tile-driver { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+    .tile-temp { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 8px; }
+    .temp-ok { color: #22c55e; }
+    .temp-warn { color: #f59e0b; }
+    .temp-alert { color: #ef4444; }
+    .temp-none { color: var(--text-dim); font-size: 32px; }
+    .tile-status { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .status-active .tile-status { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .status-overdue .tile-status { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .status-idle .tile-status { background: var(--bg3); color: var(--text-muted); border: 1px solid var(--border2); }
+    .tile-meta { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+    .tile-alert { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 4px 10px; margin-top: 8px; font-size: 11px; color: #fca5a5; }
+    .monitor-footer { text-align: center; padding: 16px; color: var(--text-dim); font-size: 12px; border-top: 1px solid var(--border); }
+    .monitor-footer a { color: var(--blue-light); }
+    .no-activity { text-align: center; padding: 100px 20px; color: var(--text-dim); }
+    .no-activity h2 { font-size: 24px; margin-bottom: 8px; color: var(--text-muted); }
+    .summary-bar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 10px 28px; display: flex; gap: 24px; font-size: 13px; align-items: center; flex-wrap: wrap; }
+    .summary-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-green { background: #22c55e; }
+    .dot-red { background: #ef4444; }
+    .dot-gray { background: var(--text-dim); }
+    .monitor-clock { font-size: 14px; color: var(--text-muted); font-variant-numeric: tabular-nums; font-family: monospace; }
+  </style>
+</head>
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'monitor' }) %>
+
+<%
+  const people = byPeople || [];
+  const activeCount = people.filter(p => p.status === 'active').length;
+  const overdueCount = people.filter(p => p.status === 'overdue').length;
+  const idleCount = people.filter(p => p.status === 'idle').length;
+%>
+
+<div class="summary-bar">
+  <div class="summary-item"><span class="dot dot-green"></span><strong><%= activeCount %></strong>&nbsp;Active</div>
+  <div class="summary-item"><span class="dot dot-red"></span><strong><%= overdueCount %></strong>&nbsp;Overdue</div>
+  <div class="summary-item"><span class="dot dot-gray"></span><strong><%= idleCount %></strong>&nbsp;Idle/Done</div>
+  <div class="summary-item">Auto-refresh every 60s</div>
+  <div class="summary-item" style="margin-left:auto;"><span class="monitor-clock" id="clock"></span></div>
+</div>
+
+<% if (people.length === 0) { %>
+<div class="no-activity">
+  <h2>No Active Drivers</h2>
+  <p>No temperature logs recorded in the last <%= overdueMinutes || 120 %> minutes.</p>
+</div>
+<% } else { %>
+<div class="monitor-grid">
+  <% people.forEach(p => {
+    const temp = p.lastTemp;
+    let tempClass = 'temp-none';
+    if (temp !== null && temp !== undefined) {
+      if (p.hasAlert) tempClass = 'temp-alert';
+      else if (Math.abs(temp) > 10) tempClass = 'temp-warn';
+      else tempClass = 'temp-ok';
+    }
+  %>
+  <div class="tile status-<%= p.status || 'idle' %>">
+    <div class="tile-rego"><%= p.rego || 'Unknown' %></div>
+    <div class="tile-driver">👤 <%= p.driverName || 'Unknown Driver' %></div>
+    <div class="tile-status"><%= p.status || 'idle' %></div>
+    <div class="tile-temp <%= tempClass %>">
+      <% if (temp !== null && temp !== undefined) { %><%= temp %>°<% } else { %>—<% } %>
+    </div>
+    <div class="tile-meta">Last log: <%= p.lastTime || '—' %> &bull; <%= p.minutesAgo != null ? p.minutesAgo + ' min ago' : '' %></div>
+    <% if (p.hasAlert && p.tempAlerts) { %>
+    <div class="tile-alert">⚠️ Temperature out of range</div>
+    <% } %>
+  </div>
+  <% }) %>
+</div>
+<% } %>
+
+<div class="monitor-footer">
+  <%= workspace.name %> &bull; Live Monitor &bull; Page auto-refreshes every 60 seconds &bull; <a href="/app">Exit Monitor</a>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+</body>
+</html>

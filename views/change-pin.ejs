@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Change PIN</title>
+  <link rel="stylesheet" href="/app.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+    }
+    .box {
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+    input, button {
+      width: 100%;
+      height: 52px;
+      padding: 0 14px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input {
+      background: #333;
+      color: white;
+      border: 1px solid #444;
+    }
+    button {
+      background: #00e676;
+      font-weight: bold;
+      cursor: pointer;
+      color: #111;
+    }
+    .error-msg {
+      color: #ff3b3b;
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h1>🔁 Security</h1>
+  </div>
+
+  <div class="box">
+    <h2>Update Your PIN</h2>
+    <form method="POST" action="/change-pin">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="password" name="newPin" placeholder="Enter New PIN" required>
+      <input type="password" name="confirmPin" placeholder="Confirm New PIN" required>
+      <button type="submit">Save PIN</button>
+    </form>
+    
+    <% if (error) { %>
+      <p class="error-msg"><%= error %></p>
+    <% } %>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <a href="/" style="color: #aaa; text-decoration: none; font-size: 14px;">⬅ Back to Dashboard</a>
+  </div>
+
+</body>
+</html>

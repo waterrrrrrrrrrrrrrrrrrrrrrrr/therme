@@ -1,0 +1,110 @@
+<%
+  // Shared header partial — used across ALL app pages
+  const _activeNav = typeof activeNav !== 'undefined' ? activeNav : '';
+  const _user = typeof user !== 'undefined' ? user : (typeof currentUser !== 'undefined' ? currentUser : null);
+  const _workspace = typeof workspace !== 'undefined' ? workspace : null;
+  const _isAdmin   = _user && (_user.role === 'admin' || _user.role === 'superadmin');
+  const _isOffice  = _user && (_user.role === 'admin' || _user.role === 'office' || _user.role === 'superadmin');
+  const _initial   = _user ? (_user.firstName || _user.name || 'U').charAt(0).toUpperCase() : '?';
+  const _isPortalMode = typeof portalImpersonation !== 'undefined' ? portalImpersonation : false;
+%>
+<% if (_isPortalMode) { %>
+<div style="background:#7c3aed;color:#fff;text-align:center;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:16px;">
+  <span>👁 Viewing Workspace (Portal Mode)</span>
+  <a href="/portal/return" style="background:rgba(255,255,255,0.2);color:#fff;padding:4px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,0.3);">Return to Portal</a>
+</div>
+<% } %>
+<header class="app-header">
+  <div class="app-header-inner">
+    <!-- Logo & workspace name -->
+    <a href="/app" class="app-header-link">
+      <% if (_workspace && _workspace.branding && _workspace.branding.favicon) { %>
+        <img src="<%= _workspace.branding.favicon %>" alt="Logo" class="app-logo">
+      <% } %>
+      <span class="app-title"><%= _workspace ? _workspace.name : (typeof appName !== 'undefined' ? appName : 'Thermio') %></span>
+    </a>
+
+    <div class="app-header-right">
+      <!-- Nav links (office+ only) -->
+      <% if (_isOffice) { %>
+      <nav class="app-header-nav">
+        <a href="/app/staff"  class="app-nav-link <%= _activeNav === 'staff'  ? 'active' : '' %>">Staff</a>
+        <a href="/app/assets" class="app-nav-link <%= _activeNav === 'assets' ? 'active' : '' %>">Assets</a>
+      </nav>
+      <% } %>
+
+      <!-- Hamburger tools menu (office+ only) -->
+      <% if (_isOffice) { %>
+      <div class="hamburger-wrap" id="hamburgerWrap">
+        <button class="hamburger-btn" onclick="toggleHamburger()" title="More tools" aria-label="More tools">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6"  x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="hamburger-dropdown" id="hamburgerDropdown">
+          <a href="/app/live"       class="<%= _activeNav === 'live'       ? 'active' : '' %>">📡 Live</a>
+          <a href="/app/monitor"    class="<%= _activeNav === 'monitor'    ? 'active' : '' %>">🖥 Monitor</a>
+          <a href="/app/exceptions" class="<%= _activeNav === 'exceptions' ? 'active' : '' %>">⚠️ Exceptions</a>
+          <a href="/app/logs"       class="<%= _activeNav === 'logs'       ? 'active' : '' %>">📋 Console</a>
+          <a href="/app/exports"    class="<%= _activeNav === 'exports'    ? 'active' : '' %>">📄 Exports</a>
+          <a href="/app/scan"       class="<%= _activeNav === 'scan'       ? 'active' : '' %>">📷 QR Scan</a>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Dark mode toggle -->
+      <button class="dark-toggle" onclick="toggleDark()" title="Toggle theme" id="themeBtn">☀️</button>
+
+      <!-- User avatar — hover dropdown (desktop) + click toggle (mobile) -->
+      <% if (_user) { %>
+      <%
+        const _profileColor = (_workspace && _workspace.branding && _workspace.branding.profileColor) ? _workspace.branding.profileColor : '#3b82f6';
+      %>
+      <div class="user-menu" id="userMenuWrap">
+        <button class="user-avatar" id="userAvatar" title="<%= _user.name || _user.username %>"
+          aria-haspopup="true" aria-expanded="false"
+          onclick="toggleUserMenuClick()"
+          style="cursor:pointer;border:3px solid <%= _profileColor %>;background:inherit;box-sizing:border-box;">
+          <%= _initial %>
+        </button>
+        <div class="user-dropdown" id="userDropdown" role="menu">
+          <div class="user-name"><%= _user.name || _user.username %></div>
+          <div class="role-label"><%= (_user.role || 'user').toUpperCase() %></div>
+          <% if (_isAdmin) { %>
+            <a href="/app/settings">⚙️ Workspace Settings</a>
+          <% } %>
+          <a href="/personal-settings">👤 Personal Settings</a>
+          <a href="/logout" class="logout-btn">Sign Out</a>
+        </div>
+      </div>
+
+      <script>
+      // Touch/mobile click toggle — hover handles desktop via CSS
+      (function() {
+        var _open = false;
+        function toggleUserMenuClick() {
+          _open = !_open;
+          const wrap = document.getElementById('userMenuWrap');
+          const btn  = document.getElementById('userAvatar');
+          if (wrap) wrap.classList.toggle('open', _open);
+          if (btn)  btn.setAttribute('aria-expanded', _open);
+        }
+        window.toggleUserMenuClick = toggleUserMenuClick;
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+          const wrap = document.getElementById('userMenuWrap');
+          if (wrap && !wrap.contains(e.target)) {
+            _open = false;
+            wrap.classList.remove('open');
+            const btn = document.getElementById('userAvatar');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+      </script>
+      <% } %>
+    </div>
+  </div>
+</header>

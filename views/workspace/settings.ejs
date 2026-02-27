@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — <%= workspace.name %></title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .settings-container { max-width: 860px; margin: 0 auto; padding: var(--sp-xl) var(--sp-lg); }
+    .page-title  { font-size: 22px; font-weight: 800; margin: 0 0 4px; }
+    .page-subtitle-text { color: var(--text-muted); font-size: 14px; margin: 0 0 var(--sp-xl); }
+    .color-row   { display: flex; align-items: center; gap: 12px; }
+    .color-preview { width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--border2); flex-shrink: 0; }
+    .file-input-wrapper { display: flex; align-items: center; gap: 12px; }
+    .file-label  { flex: 1; padding: 11px 14px; background: var(--bg-input); border: 1.5px dashed var(--border2); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-muted); transition: border-color 0.2s; }
+    .file-label:hover { border-color: var(--blue); }
+    .q-list  { display: flex; flex-direction: column; gap: 8px; }
+    .q-row   { display: flex; align-items: center; gap: 10px; }
+    .q-num   { width: 24px; flex-shrink: 0; color: var(--text-dim); font-size: 13px; text-align: right; }
+    .range-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
+    @media (max-width: 600px) { .range-grid { grid-template-columns: 1fr; } }
+    .range-zone { background: var(--bg-input); border: 1.5px solid var(--border2); border-radius: var(--radius-sm); padding: 14px; }
+    .range-zone-title { font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+    .range-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+    .range-row input { padding: 8px 10px; font-size: 13px; }
+    .range-row .unit { color: var(--text-dim); font-size: 12px; flex-shrink: 0; width: 28px; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .checkbox-row label { margin: 0; color: var(--text); font-size: 14px; }
+    .hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .settings-section-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(180deg, var(--blue), #2563eb);
+      color: white;
+      margin-top: var(--sp-md);
+    }
+    /* Settings tabs */
+    .settings-tabs { display: flex; gap: 4px; margin-bottom: var(--sp-xl); border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .settings-tab { padding: 10px 18px; font-size: 14px; font-weight: 600; color: var(--text-muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
+    .settings-tab.active { color: var(--blue-light); border-bottom-color: var(--blue); }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+  </style>
+</head>
+<body id="appBody">
+
+<%- include('../partials/header', { activeNav: 'settings' }) %>
+
+<div class="settings-container">
+  <h1 class="page-title">Settings</h1>
+  <p class="page-subtitle-text">Workspace configuration, compliance rules, and personal preferences.</p>
+
+  <% if (success === 'branding')       { %><div class="alert alert-success">Branding updated successfully.</div><% } %>
+  <% if (success === 'checklist')      { %><div class="alert alert-success">Checklist questions updated.</div><% } %>
+  <% if (success === 'export')         { %><div class="alert alert-success">Export settings saved.</div><% } %>
+  <% if (success === 'compliance')     { %><div class="alert alert-success">Compliance settings saved.</div><% } %>
+  <% if (success === 'password')       { %><div class="alert alert-success">Password updated successfully.</div><% } %>
+  <% if (success === 'google_unbound') { %><div class="alert alert-success">Google account unlinked successfully.</div><% } %>
+  <% if (error === 'questions')            { %><div class="alert alert-error">At least one checklist question is required.</div><% } %>
+  <% if (error === 'hard_limit_exceeded')  { %><div class="alert alert-error">Hard limit of 30 questions exceeded. Please remove some questions.</div><% } %>
+  <% if (error === 'workspace_limit_exceeded') { %><div class="alert alert-error">Workspace question limit exceeded. Your workspace allows <% } %>
+  <% if (error === 'pw_mismatch')          { %><div class="alert alert-error">Passwords do not match.</div><% } %>
+  <% if (error === 'pw_weak')              { %><div class="alert alert-error">Password does not meet strength requirements. Ensure it has uppercase, a number, and a special character.</div><% } %>
+  <% if (error === 'pw_wrong' || error === 'wrong_password') { %><div class="alert alert-error">Current password is incorrect.</div><% } %>
+  <% if (error === 'missing_fields')       { %><div class="alert alert-error">Please fill in all password fields.</div><% } %>
+  <% if (error === 'pw_too_short')         { %><div class="alert alert-error">Password must be at least 8 characters.</div><% } %>
+  <% if (error === 'no_password_account')  { %><div class="alert alert-error">Your account does not use password login. Please use Google Sign-In instead.</div><% } %>
+  <% if (error === 'pw_reuse')             { %><div class="alert alert-error">You cannot reuse any of your last 3 passwords. Please choose a different password.</div><% } %>
+  <% if (error === 'google_already_linked') { %><div class="alert alert-error">You already have a Google account linked. Unbind it first to link a different account.</div><% } %>
+  <% if (error === 'no_google_linked')      { %><div class="alert alert-error">No Google account is currently linked.</div><% } %>
+  <% if (error === 'set_password_first')    { %><div class="alert alert-error">Please set a password before unbinding your Google account.</div><% } %>
+  <% if (error && !['questions','pw_mismatch','pw_weak','pw_wrong','wrong_password','missing_fields','pw_too_short','no_password_account','pw_reuse','google_already_linked','no_google_linked','set_password_first'].includes(error)) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <%
+    const s  = workspace.settings || {};
+    const tr = s.tempRanges || {};
+    const so = s.signoff    || {};
+    const sm = s.sheetMeta  || {};
+  %>
+
+  <!-- Settings Tabs -->
+  <div class="settings-tabs">
+    <button class="settings-tab active" onclick="switchTab('workspace', this)">Workspace</button>
+    <button class="settings-tab" onclick="switchTab('personal', this)" id="personalTabBtn">Personal</button>
+  </div>
+
+  <!-- ═══ WORKSPACE SETTINGS PANEL ════════════════════════════ -->
+  <div class="settings-panel active" id="panel-workspace">
+
+    <!-- Branding -->
+    <div class="settings-card">
+      <div class="settings-card-title">Branding</div>
+      <form method="POST" action="/app/settings/branding" enctype="multipart/form-data">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <label>Primary Color</label>
+        <div class="color-row">
+          <input type="color" name="primaryColor" id="pc" value="<%= (workspace.branding && workspace.branding.primaryColor) || '#3b82f6' %>" oninput="syncColor(this,'pcPrev','pcText')">
+          <div class="color-preview" id="pcPrev" style="background:<%= (workspace.branding && workspace.branding.primaryColor) || '#3b82f6' %>"></div>
+          <input type="text" id="pcText" value="<%= (workspace.branding && workspace.branding.primaryColor) || '#3b82f6' %>" style="max-width:120px" readonly>
+        </div>
+        <label>Accent Color</label>
+        <div class="color-row">
+          <input type="color" name="accentColor" value="<%= (workspace.branding && workspace.branding.accentColor) || '#facc15' %>">
+          <input type="text"  value="<%= (workspace.branding && workspace.branding.accentColor) || '#facc15' %>" style="max-width:120px" readonly>
+        </div>
+        <label>Profile Avatar Color</label>
+        <p style="color:var(--text-muted);font-size:12px;margin:0 0 8px;">Sets the border color of the profile circle in the top-right header.</p>
+        <div class="color-row">
+          <input type="color" name="profileColor" id="profileColorPicker" value="<%= (workspace.branding && workspace.branding.profileColor) || '#3b82f6' %>" oninput="syncColor(this,'profileColorPrev','profileColorText')">
+          <div class="color-preview" id="profileColorPrev" style="background:<%= (workspace.branding && workspace.branding.profileColor) || '#3b82f6' %>; border-radius:50%;"></div>
+          <input type="text" id="profileColorText" value="<%= (workspace.branding && workspace.branding.profileColor) || '#3b82f6' %>" style="max-width:120px" readonly>
+        </div>
+        <label>Favicon / Logo</label>
+        <div class="file-input-wrapper">
+          <label class="file-label" for="faviconInput">Click to upload favicon/logo (PNG, SVG, ICO)</label>
+          <input type="file" id="faviconInput" name="favicon" accept="image/*" style="display:none">
+        </div>
+        <% if (workspace.branding && workspace.branding.favicon) { %>
+          <img src="<%= workspace.branding.favicon %>" style="width:40px;height:40px;border-radius:8px;margin-top:8px;object-fit:cover">
+        <% } %>
+        <label>Login Background Image</label>
+        <div class="file-input-wrapper">
+          <label class="file-label" for="bgInput">Click to upload login background (JPG, PNG, WEBP)</label>
+          <input type="file" id="bgInput" name="loginBackground" accept="image/*" style="display:none">
+        </div>
+        <% if (workspace.branding && workspace.branding.loginBackground) { %>
+          <img src="<%= workspace.branding.loginBackground %>" style="width:120px;height:72px;border-radius:8px;margin-top:8px;object-fit:cover">
+        <% } %>
+        <button type="submit" class="settings-section-btn">Save Branding</button>
+      </form>
+    </div>
+
+    <!-- Compliance Checklist -->
+    <div class="settings-card">
+      <div class="settings-card-title">Compliance Checklist Questions</div>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">
+        Appears in daily pre-start checklist and on the temperature sheet. Drag to reorder. Changes do not affect historical records.<br>
+        <strong>Questions: <span id="questionCount">0</span>/ 
+      </p>
+      <form method="POST" action="/app/settings/checklist" id="checklistForm">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        
+            <input type="text" name="questions[]" value="<%= q %>" placeholder="Enter question here!" style="flex:1;">
+            <button type="button" class="q-remove-btn" onclick="removeQuestion(this)" title="Remove question">✕</button>
+          </div>
+          <% }) %>
+        </div>
+        <button type="button" class="q-add-btn" id="addQuestionBtn" onclick="addQuestion()">+ Add Question</button>
+        <div id="limitMessage" style="display:none;color:var(--red);font-size:13px;margin-top:8px;font-weight:600;"></div>
+        <button type="submit" class="settings-section-btn">Save Questions</button>
+      </form>
+      <style>
+        .q-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .q-drag-handle { cursor: grab; color: var(--text-muted); font-size: 18px; padding: 0 4px; user-select: none; }
+        .q-drag-handle:active { cursor: grabbing; }
+        .q-remove-btn { background: none; border: 1px solid rgba(239,68,68,0.3); color: var(--red); width: 28px; height: 28px; border-radius: 5px; cursor: pointer; font-size: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .q-remove-btn:hover { background: rgba(239,68,68,0.1); }
+        .q-add-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.3); padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; margin: 8px 0 12px; }
+        .q-add-btn:hover { background: rgba(34,197,94,0.2); }
+        .q-row.dragging { opacity: 0.4; }
+      </style>
+    </div>
+
+    <!-- Compliance Configuration -->
+    <div class="settings-card">
+      <div class="settings-card-title">Compliance Configuration</div>
+      <form method="POST" action="/app/settings/compliance">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+
+        <label>Workspace Timezone</label>
+        <select name="timezone">
+          <% const tzOptions = [
+            ['Australia/Perth',    'Australia/Perth (AWST UTC+8)'],
+            ['Australia/Sydney',   'Australia/Sydney (AEST/AEDT)'],
+            ['Australia/Melbourne','Australia/Melbourne (AEST/AEDT)'],
+            ['Australia/Brisbane', 'Australia/Brisbane (AEST UTC+10)'],
+            ['Australia/Adelaide', 'Australia/Adelaide (ACST/ACDT)'],
+            ['Australia/Darwin',   'Australia/Darwin (ACST UTC+9:30)'],
+            ['Pacific/Auckland',   'Pacific/Auckland (NZST/NZDT)'],
+            ['Asia/Singapore',     'Asia/Singapore (SGT UTC+8)'],
+            ['UTC',                'UTC']
+          ];
+          tzOptions.forEach(([val, label]) => { %>
+            <option value="<%= val %>" <%= (s.timezone || 'Australia/Perth') === val ? 'selected' : '' %>><%= label %></option>
+          <% }) %>
+        </select>
+        <p class="hint">All dates, log times, sign-offs, and exports use this timezone.</p>
+
+        <label>Overdue Logging Timer (minutes)</label>
+        <select name="overdueMinutes">
+          <% [60, 90, 120, 150, 180].forEach(m => { %>
+            <option value="<%= m %>" <%= (s.overdueMinutes || 120) == m ? 'selected' : '' %>><%= m %> min</option>
+          <% }) %>
+        </select>
+        <p class="hint">Drivers appear as overdue on the Live page if their last log exceeds this threshold.</p>
+
+        <label style="margin-top:20px;">Temperature Ranges (°C) — Thresholds inherited by Assets</label>
+        <p class="hint" style="margin-top:0;margin-bottom:8px;">Leave blank to disable range checking for that zone. These thresholds are automatically inherited by assets matching the temperature type.</p>
+        <div class="range-grid">
+          <div class="range-zone">
+            <div class="range-zone-title">Cabin / Ambient</div>
+            <div class="range-row"><span class="unit">Min</span><input type="number" name="cabin_min" step="0.1" value="<%= (tr.cabin && tr.cabin.min != null && tr.cabin.min !== '') ? tr.cabin.min : '' %>" placeholder="—"><span class="unit">°C</span></div>
+            <div class="range-row"><span class="unit">Max</span><input type="number" name="cabin_max" step="0.1" value="<%= (tr.cabin && tr.cabin.max != null && tr.cabin.max !== '') ? tr.cabin.max : '' %>" placeholder="—"><span class="unit">°C</span></div>
+          </div>
+          <div class="range-zone">
+            <div class="range-zone-title">Chiller Threshold</div>
+            <div class="range-row"><span class="unit">Min</span><input type="number" name="chiller_min" step="0.1" value="<%= (tr.chiller && tr.chiller.min != null && tr.chiller.min !== '') ? tr.chiller.min : '' %>" placeholder="—"><span class="unit">°C</span></div>
+            <div class="range-row"><span class="unit">Max</span><input type="number" name="chiller_max" step="0.1" value="<%= (tr.chiller && tr.chiller.max != null && tr.chiller.max !== '') ? tr.chiller.max : '' %>" placeholder="—"><span class="unit">°C</span></div>
+          </div>
+          <div class="range-zone">
+            <div class="range-zone-title">Freezer Threshold</div>
+            <div class="range-row"><span class="unit">Min</span><input type="number" name="freezer_min" step="0.1" value="<%= (tr.freezer && tr.freezer.min != null && tr.freezer.min !== '') ? tr.freezer.min : '' %>" placeholder="—"><span class="unit">°C</span></div>
+            <div class="range-row"><span class="unit">Max</span><input type="number" name="freezer_max" step="0.1" value="<%= (tr.freezer && tr.freezer.max != null && tr.freezer.max !== '') ? tr.freezer.max : '' %>" placeholder="—"><span class="unit">°C</span></div>
+          </div>
+        </div>
+
+        <label style="margin-top:20px;">Sign-off Day of Week</label>
+        <select name="signoff_day">
+          <% [['1','Monday'],['2','Tuesday'],['3','Wednesday'],['4','Thursday'],['5','Friday'],['6','Saturday'],['0','Sunday']].forEach(([v,l]) => { %>
+            <option value="<%= v %>" <%= String(so.dayOfWeek != null ? so.dayOfWeek : 5) === v ? 'selected' : '' %>><%= l %></option>
+          <% }) %>
+        </select>
+        <p class="hint">Day when drivers must complete shift sign-off with odometer/signature.</p>
+
+        <div class="checkbox-row">
+          <input type="checkbox" name="requireOdometer" id="reqOdo" value="1" <%= (so.requireOdometer !== false) ? 'checked' : '' %>>
+          <label for="reqOdo">Require odometer reading on sign-off day</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="requireSignature" id="reqSig" value="1" <%= (so.requireSignature !== false) ? 'checked' : '' %>>
+          <label for="reqSig">Require driver signature on sign-off day</label>
+        </div>
+
+        <label style="margin-top:24px;">Max Assets Per Day Per Staff Member</label>
+        <input type="number" name="maxAssetsPerDay" min="1" max="50"
+          value="<%= (s.maxAssetsPerDay != null) ? s.maxAssetsPerDay : '' %>"
+          placeholder="Leave blank for no limit">
+        <p class="hint">Limits how many assets one staff member can sign into per day.</p>
+
+        <div class="checkbox-row" style="margin-top:24px;">
+          <input type="checkbox" name="enableWorksheet" id="enableWorksheet" value="1" <%= (s.enableWorksheet === true) ? 'checked' : '' %>>
+          <label for="enableWorksheet">Enable Temperature Sheet Access</label>
+        </div>
+        <p class="hint">When enabled, staff can access the weekly temperature sheet for assets. Disable to hide this feature entirely.</p>
+
+        <label style="margin-top:20px;">Temp Sheet — Company Display Name</label>
+        <input type="text" name="sheetCompanyName" value="<%= sm.companyDisplayName || '' %>" placeholder="(blank = not shown)">
+        <label>Temp Sheet — Footer Text</label>
+        <input type="text" name="sheetFooter" value="<%= sm.footerText || '' %>" placeholder="(blank = not shown)">
+        <label>Temp Sheet — Contact Phone</label>
+        <input type="text" name="sheetPhone" value="<%= sm.phone || '' %>" placeholder="(blank = not shown)">
+        <label>Temp Sheet — Contact Email</label>
+        <input type="email" name="sheetEmail" value="<%= sm.email || '' %>" placeholder="(blank = not shown)">
+        <label>Temp Sheet — Signature Label</label>
+        <input type="text" name="sheetSigLabel" value="<%= sm.signatureLabel || '' %>" placeholder="(blank = not shown)">
+
+        <button type="submit" class="settings-section-btn">Save Compliance Settings</button>
+      </form>
+    </div>
+
+    <!-- Export Schedule -->
+    <div class="settings-card">
+      <div class="settings-card-title">Export Schedule</div>
+      <form method="POST" action="/app/settings/export">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <% const es = workspace.exportSettings || {}; %>
+        <label>Frequency</label>
+        <select name="frequency">
+          <option value="weekly"      <%= es.frequency === 'weekly'      ? 'selected' : '' %>>Weekly</option>
+          <option value="fortnightly" <%= es.frequency === 'fortnightly' ? 'selected' : '' %>>Fortnightly</option>
+          <option value="monthly"     <%= es.frequency === 'monthly'     ? 'selected' : '' %>>Monthly</option>
+        </select>
+        <label>Day of Week</label>
+        <select name="scheduleDay">
+          <% ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].forEach(d => { %>
+            <option value="<%= d %>" <%= (es.scheduleDay || 'sunday') === d ? 'selected' : '' %>><%= d.charAt(0).toUpperCase() + d.slice(1) %></option>
+          <% }) %>
+        </select>
+        <label>Email Recipients (comma-separated)</label>
+        <textarea name="recipients" rows="3" placeholder="manager@company.com, office@company.com"><%= (es.recipients || []).join(', ') %></textarea>
+        <button type="submit" class="settings-section-btn">Save Export Settings</button>
+      </form>
+    </div>
+
+  </div><!-- /panel-workspace -->
+
+  <!-- ═══ PERSONAL SETTINGS PANEL ══════════════════════════════ -->
+  <div class="settings-panel" id="panel-personal">
+    <div class="settings-card" id="personal">
+      <div class="settings-card-title">Change Password</div>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">Update your own account password. You will be required to log in again after changing.</p>
+      <form method="POST" action="/app/settings/change-password" id="personalPwForm">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" name="currentPassword" placeholder="Current password" autocomplete="current-password" required>
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <div style="position:relative;">
+            <input type="password" name="newPassword" id="personalNewPw" placeholder="New password" autocomplete="new-password" required oninput="checkStrength(this.value, 'personal')" style="padding-right:45px;">
+            <button type="button" onclick="togglePasswordVisibility('personalNewPw', 'togglePersonalPwIcon')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-muted);" title="Show/hide password" id="togglePersonalPwIcon">👁️</button>
+          </div>
+          <!-- Password strength indicator -->
+          <div class="password-strength-wrap">
+            <div class="password-strength-bar"><div class="password-strength-fill" id="personal-strength-fill"></div></div>
+            <span class="password-strength-label" id="personal-strength-label"></span>
+          </div>
+          <!-- Requirements checklist -->
+          <div class="password-requirements">
+            <p>Requirements</p>
+            <div class="req-item" id="personal-req-length"><span class="req-dot"></span>At least 8 characters</div>
+            <div class="req-item" id="personal-req-upper"><span class="req-dot"></span>At least 1 uppercase letter</div>
+            <div class="req-item" id="personal-req-number"><span class="req-dot"></span>At least 1 number</div>
+            <div class="req-item" id="personal-req-special"><span class="req-dot"></span>At least 1 special character</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" name="confirmPassword" id="personalConfirmPw" placeholder="Confirm new password" autocomplete="new-password" required>
+        </div>
+        <button type="submit" class="settings-section-btn" id="personalSubmitBtn" disabled style="opacity:0.5;">Update Password</button>
+      </form>
+    </div>
+
+    <!-- Account Info (read-only) -->
+    <div class="settings-card" style="margin-top:var(--sp-md);">
+      <div class="settings-card-title">Account Information</div>
+      <div class="stat-row"><span class="stat-label">Name</span><span class="stat-value"><%= user.name || user.username %></span></div>
+      <div class="stat-row"><span class="stat-label">Username</span><span class="stat-value" style="font-family:monospace;"><%= user.username || '—' %></span></div>
+      <div class="stat-row"><span class="stat-label">Role</span><span class="stat-value"><%= (user.role || 'user').toUpperCase() %></span></div>
+      <% if (user.email) { %>
+      <div class="stat-row"><span class="stat-label">Email</span><span class="stat-value"><%= user.email %></span></div>
+      <% } %>
+      <% if (user.authType) { %>
+      <div class="stat-row"><span class="stat-label">Auth Type</span><span class="stat-value"><%= user.authType === 'google' ? 'Google OAuth' : 'Password' %></span></div>
+      <% } %>
+    </div>
+
+    <!-- Google Account Management -->
+    <% const fullUser = typeof UserRepo !== 'undefined' ? UserRepo.getById(user.id) : null; %>
+    <% if (fullUser && fullUser.googleId) { %>
+    <div class="settings-card" style="margin-top:var(--sp-md);">
+      <div class="settings-card-title">Google Account</div>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">You have linked your Google account for sign-in.</p>
+      <form method="POST" action="/profile/unbind-google" onsubmit="return confirm('Are you sure you want to unbind your Google account? You will need to use your password to log in.');">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <button type="submit" class="settings-section-btn" style="background:linear-gradient(180deg, #ef4444, #dc2626);">Unbind Google Account</button>
+      </form>
+    </div>
+    <% } else if (fullUser && !fullUser.googleId) { %>
+    <div class="settings-card" style="margin-top:var(--sp-md);">
+      <div class="settings-card-title">Link Google Account</div>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">Link your Google account to enable sign-in with Google.</p>
+      <a href="/profile/link-google" class="settings-section-btn" style="display:inline-block;text-decoration:none;text-align:center;">Link Google Account</a>
+    </div>
+    <% } %>
+  </div><!-- /panel-personal -->
+
+</div><!-- /settings-container -->
+
+<div class="app-footer">
+  Workspace Settings &bull; <a href="/app">Dashboard</a> &bull; <a href="/logout">Logout</a>
+</div>
+
+<script>
+// ── Dark mode ─────────────────────────────────────────────────
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+
+// ── Hamburger ─────────────────────────────────────────────────
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+
+// ── Settings tabs ─────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  localStorage.setItem('thermio_settings_tab', name);
+}
+
+// Restore last active tab
+(function() {
+  const saved = localStorage.getItem('thermio_settings_tab');
+  // Also check URL hash
+  const hash = window.location.hash;
+  if (hash === '#personal' || saved === 'personal') {
+    const btn = document.getElementById('personalTabBtn');
+    if (btn) switchTab('personal', btn);
+  }
+})();
+
+// ── Color sync ────────────────────────────────────────────────
+function syncColor(input, prevId, textId) {
+  if (prevId) document.getElementById(prevId).style.background = input.value;
+  if (textId) document.getElementById(textId).value = input.value;
+}
+// Use optional chaining — these elements exist only in the branding section.
+// Without ?. the script would throw a TypeError and crash ALL subsequent JS
+// (including checkStrength and updatePersonalSubmitBtn).
+document.getElementById('faviconInput')?.addEventListener('change', e => {
+  document.querySelector('.file-label[for=faviconInput]').textContent = e.target.files[0]?.name || 'File selected';
+});
+document.getElementById('bgInput')?.addEventListener('change', e => {
+  document.querySelector('.file-label[for=bgInput]').textContent = e.target.files[0]?.name || 'File selected';
+});
+
+// ── Password strength indicator ────────────────────────────────
+function checkStrength(password, prefix) {
+  const reqs = {
+    length:  password.length >= 8,
+    upper:   /[A-Z]/.test(password),
+    number:  /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password)
+  };
+
+  // Update requirement dots
+  ['length','upper','number','special'].forEach(key => {
+    const el = document.getElementById(prefix + '-req-' + key);
+    if (el) el.classList.toggle('met', reqs[key]);
+  });
+
+  // Score
+  const score = Object.values(reqs).filter(Boolean).length;
+  const fill  = document.getElementById(prefix + '-strength-fill');
+  const label = document.getElementById(prefix + '-strength-label');
+
+  if (!password) {
+    if (fill)  { fill.className = 'password-strength-fill'; }
+    if (label) { label.textContent = ''; label.className = 'password-strength-label'; }
+    updatePersonalSubmitBtn();
+    return;
+  }
+
+  let strength = 'weak';
+  if (score >= 4) strength = 'strong';
+  else if (score >= 2 && reqs.length) strength = 'medium';
+
+  if (fill)  { fill.className = 'password-strength-fill ' + strength; }
+  if (label) {
+    const labelText = strength === 'weak' ? 'Password strength insufficient' :
+                      strength === 'medium' ? 'Moderate password strength' :
+                      'Strong password';
+    label.textContent = labelText;
+    label.className = 'password-strength-label ' + strength;
+  }
+
+  updatePersonalSubmitBtn();
+}
+
+// Enable submit only when password is STRONG (all 4 requirements) AND confirm matches
+function updatePersonalSubmitBtn() {
+  const pw1 = (document.getElementById('personalNewPw') || {}).value || '';
+  const pw2 = (document.getElementById('personalConfirmPw') || {}).value || '';
+  const btn = document.getElementById('personalSubmitBtn');
+
+  // Check if password is STRONG (all requirements met)
+  const reqs = {
+    length:  pw1.length >= 8,
+    upper:   /[A-Z]/.test(pw1),
+    number:  /[0-9]/.test(pw1),
+    special: /[^A-Za-z0-9]/.test(pw1)
+  };
+  const isStrong = Object.values(reqs).every(Boolean);
+  const matched = pw1 === pw2 && pw2.length > 0;
+
+  if (btn) {
+    btn.disabled = !(isStrong && matched);
+    btn.style.opacity = (isStrong && matched) ? '1' : '0.5';
+  }
+}
+
+// Initialize
+document.getElementById('personalNewPw')?.addEventListener('input', function() {
+  checkStrength(this.value, 'personal');
+});
+document.getElementById('personalConfirmPw')?.addEventListener('input', function() {
+  updatePersonalSubmitBtn();
+});
+
+// Password visibility toggle
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    if (icon) icon.textContent = '👁️';
+  }
+}
+
+// ── Checklist drag-and-drop ────────────────────────────────────
+let clDragSrc = null;
+
+function updateQuestionCount() {
+  const container = document.getElementById('checklistContainer');
+  const count = container.children.length;
+  const countEl = document.getElementById('questionCount');
+  if (countEl) countEl.textContent = count;
+
+  const workspaceLimit = parseInt(document.getElementById('workspaceLimit')?.value || '10');
+  const hardLimit = parseInt(document.getElementById('hardLimit')?.value || '30');
+  const btn = document.getElementById('addQuestionBtn');
+  const msg = document.getElementById('limitMessage');
+
+  if (count >= hardLimit) {
+    if (btn) btn.disabled = true;
+    if (msg) {
+      msg.style.display = 'block';
+      msg.textContent = 'Hard limit of 30 questions reached';
+    }
+  } else if (count >= workspaceLimit) {
+    if (btn) btn.disabled = true;
+    if (msg) {
+      msg.style.display = 'block';
+      msg.textContent = 'Workspace question limit reached';
+    }
+  } else {
+    if (btn) btn.disabled = false;
+    if (msg) msg.style.display = 'none';
+  }
+}
+
+function addQuestion() {
+  const container = document.getElementById('checklistContainer');
+  const workspaceLimit = parseInt(document.getElementById('workspaceLimit')?.value || '10');
+  const hardLimit = parseInt(document.getElementById('hardLimit')?.value || '30');
+
+  if (container.children.length >= hardLimit) {
+    alert('Hard limit of 30 questions reached');
+    return;
+  }
+  if (container.children.length >= workspaceLimit) {
+    alert('Workspace question limit reached');
+    return;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'q-row';
+  row.draggable = true;
+  row.ondragstart = clDragStart;
+  row.ondragover = clDragOver;
+  row.ondrop = clDrop;
+  row.innerHTML = '<span class="q-drag-handle" title="Drag to reorder">⠿</span>' +
+    '<input type="text" name="questions[]" placeholder="Enter question here!" style="flex:1;">' +
+    '<button type="button" class="q-remove-btn" onclick="removeQuestion(this)" title="Remove question">✕</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+  updateRemoveButtons();
+  updateQuestionCount();
+}
+
+function removeQuestion(btn) {
+  const container = document.getElementById('checklistContainer');
+  if (container.children.length <= 1) return; // keep at least 1
+  btn.closest('.q-row').remove();
+  updateRemoveButtons();
+  updateQuestionCount();
+}
+
+function updateRemoveButtons() {
+  const container = document.getElementById('checklistContainer');
+  const btns = container.querySelectorAll('.q-remove-btn');
+  btns.forEach(btn => {
+    btn.style.visibility = container.children.length > 1 ? 'visible' : 'hidden';
+  });
+}
+
+function clDragStart(e) {
+  clDragSrc = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function clDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function clDrop(e) {
+  e.preventDefault();
+  if (clDragSrc !== this) {
+    const container = document.getElementById('checklistContainer');
+    const rows = Array.from(container.children);
+    const srcIdx = rows.indexOf(clDragSrc);
+    const tgtIdx = rows.indexOf(this);
+    if (srcIdx < tgtIdx) {
+      container.insertBefore(clDragSrc, this.nextSibling);
+    } else {
+      container.insertBefore(clDragSrc, this);
+    }
+  }
+  clDragSrc.classList.remove('dragging');
+  clDragSrc = null;
+}
+
+// Validate on submit: ensure at least one non-empty question
+document.getElementById('checklistForm')?.addEventListener('submit', function(e) {
+  const inputs = this.querySelectorAll('input[name="questions[]"]');
+  const hasValue = Array.from(inputs).some(i => i.value.trim() !== '');
+  if (!hasValue) {
+    e.preventDefault();
+    alert('Please add at least one checklist question.');
+  }
+  // Remove empty questions before submit
+  inputs.forEach(i => { if (!i.value.trim()) i.name = ''; });
+});
+
+// Init remove buttons visibility and question count
+updateRemoveButtons();
+updateQuestionCount();
+
+</script>
+</body>
+</html>

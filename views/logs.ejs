@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Event Console – <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    body { font-family: 'Courier New', monospace; }
+    .log-header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .log-header h1 { margin: 0; font-size: 18px; color: var(--blue-light); }
+    .log-header .meta { font-size: 12px; color: var(--text-muted); }
+    .log-filters {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .log-filters form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; }
+    .log-filters input, .log-filters select {
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .log-filters button {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .log-filters button:hover { background: var(--border2); }
+    .log-filters a { color: var(--text-muted); font-size: 12px; text-decoration: none; }
+    .log-table { width: 100%; max-width: 1400px; margin: 20px auto; padding: 0 24px; }
+    .log-line {
+      display: grid;
+      grid-template-columns: 150px 130px 120px 1fr 160px;
+      gap: 10px;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      align-items: center;
+    }
+    .log-line:hover { background: var(--bg3); }
+    .log-line .ts { color: var(--text-muted); }
+    .log-line .user { color: var(--blue-light); }
+    .tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-login            { background: rgba(59,130,246,0.15);  color: var(--blue-light); }
+    .tag-user_created     { background: rgba(34,197,94,0.15);   color: var(--green); }
+    .tag-user_deleted     { background: rgba(239,68,68,0.15);   color: var(--red); }
+    .tag-vehicle_created  { background: rgba(34,197,94,0.12);   color: #4ade80; }
+    .tag-vehicle_deleted  { background: rgba(245,158,11,0.15);  color: var(--yellow); }
+    .tag-temp_logged      { background: rgba(59,130,246,0.12);  color: var(--blue-light); }
+    .tag-shift_ended      { background: rgba(59,130,246,0.12);  color: var(--blue-light); }
+    .tag-signoff_completed{ background: rgba(124,58,237,0.15);  color: #a78bfa; }
+    .tag-workspace_updated{ background: rgba(245,158,11,0.12);  color: var(--yellow); }
+    .tag-limits_updated   { background: rgba(245,158,11,0.12);  color: var(--yellow); }
+    .tag-role_changed     { background: rgba(239,68,68,0.12);   color: #f87171; }
+    .tag-settings_updated { background: rgba(34,197,94,0.12);   color: var(--green); }
+    .tag-backup_exported  { background: rgba(34,197,94,0.12);   color: var(--green); }
+    .tag-backup_restored  { background: rgba(245,158,11,0.12);  color: var(--yellow); }
+    .tag-exception_flagged{ background: rgba(239,68,68,0.12);   color: var(--red); }
+    .log-empty { text-align: center; padding: 60px; color: var(--text-muted); font-size: 14px; }
+    .pagination { display: flex; gap: 8px; justify-content: center; padding: 20px; }
+    .pagination a {
+      color: var(--blue-light);
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .pagination a.active { background: var(--bg3); }
+    .pagination span { color: var(--text-muted); font-size: 12px; padding: 4px 6px; }
+    .col-header {
+      display: grid;
+      grid-template-columns: 150px 130px 120px 1fr 160px;
+      gap: 10px;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border2);
+    }
+    .desc { color: var(--text); }
+    .meta-chip {
+      background: var(--bg3);
+      color: var(--text-muted);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'logs' }) %>
+
+<div class="log-header">
+  <h1>🖥 Event Console</h1>
+  <div class="meta"><%= total %> events &bull; Page <%= page %> of <%= totalPages || 1 %></div>
+</div>
+
+<div class="log-filters">
+  <form method="GET" action="/app/logs">
+    <input type="text" name="search" placeholder="Search..." value="<%= query.search || '' %>" style="width:180px;">
+    <select name="action">
+      <option value="">All Actions</option>
+      <% actions.forEach(a => { %>
+        <option value="<%= a %>" <%= query.action === a ? 'selected' : '' %>><%= a %></option>
+      <% }) %>
+    </select>
+    <select name="user">
+      <option value="">All Users</option>
+      <% allUsers.forEach(u => { %>
+        <option value="<%= u.id %>" <%= query.user === u.id ? 'selected' : '' %>><%= u.name || u.username %></option>
+      <% }) %>
+    </select>
+    <input type="date" name="from" value="<%= query.from || '' %>" title="From date">
+    <input type="date" name="to" value="<%= query.to || '' %>" title="To date">
+    <button type="submit">Filter</button>
+    <a href="/app/logs">Clear</a>
+  </form>
+</div>
+
+<div class="log-table">
+  <% if (entries.length === 0) { %>
+    <div class="log-empty">No events found for the selected filters.</div>
+  <% } else { %>
+    <div class="col-header">
+      <div>Timestamp</div>
+      <div>User</div>
+      <div>Action</div>
+      <div>Description</div>
+      <div>Metadata</div>
+    </div>
+    <% entries.forEach(e => {
+      const u = allUsers.find(u => u.id === e.userId);
+      const uName = u ? (u.name || u.username) : (e.userId ? 'System' : 'System');
+      const ts = new Date(e.createdAt);
+      const tsStr = ts.toLocaleDateString('en-AU') + ' ' + ts.toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      const metaKeys = Object.keys(e.metadata || {});
+    %>
+    <div class="log-line">
+      <div class="ts"><%= tsStr %></div>
+      <div class="user"><%= uName %></div>
+      <div><span class="tag tag-<%= e.actionType %>"><%= e.actionType %></span></div>
+      <div class="desc"><%= e.description %></div>
+      <div>
+        <% metaKeys.slice(0,2).forEach(k => { %>
+          <span class="meta-chip"><%= k %>: <%= typeof e.metadata[k] === 'object' ? '...' : String(e.metadata[k]).slice(0,20) %></span>
+        <% }) %>
+      </div>
+    </div>
+    <% }) %>
+  <% } %>
+
+  <% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% if (page > 1) { %>
+      <a href="?<%= new URLSearchParams({ ...query, page: page-1 }).toString() %>">← Prev</a>
+    <% } %>
+    <% for (let p = Math.max(1, page-2); p <= Math.min(totalPages, page+2); p++) { %>
+      <a href="?<%= new URLSearchParams({ ...query, page: p }).toString() %>" class="<%= p === page ? 'active' : '' %>"><%= p %></a>
+    <% } %>
+    <% if (page < totalPages) { %>
+      <a href="?<%= new URLSearchParams({ ...query, page: page+1 }).toString() %>">Next →</a>
+    <% } %>
+    <span>of <%= totalPages %> pages</span>
+  </div>
+  <% } %>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

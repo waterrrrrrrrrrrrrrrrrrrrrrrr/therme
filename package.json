@@ -1,0 +1,40 @@
+{
+  "name": "thermio-tms",
+  "version": "8.4.0",
+  "description": "Thermio TMS - Multi-tenant Temperature Management System",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "migrate": "node database/migrate.js",
+    "addthermiostaff": "node scripts/addthermiostaff.js",
+    "create-superadmin": "node scripts/addthermiostaff.js",
+    "test-email": "node scripts/test-email.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "connect-pg-simple": "^9.0.1",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "luxon": "^3.7.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.12.0",
+    "puppeteer": "^22.11.0",
+    "qrcode": "^1.5.4",
+    "resend": "^3.4.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

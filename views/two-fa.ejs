@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Two-Factor Authentication</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body class="home">
+<header class="app-header">
+  <div class="app-header-inner">
+    <a href="/app" class="app-header-link">
+      <span class="app-title"><% if (workspace) { %><%= workspace.name %><% } else { %>Thermio<% } %></span>
+    </a>
+  </div>
+</header>
+<div class="home-container" style="max-width:480px;margin:60px auto;text-align:center;">
+  <h2 style="color:#f0f0f0;margin-bottom:16px;">🔐 Two-Factor Authentication</h2>
+  <p style="color:#888;line-height:1.6;"><%= message %></p>
+  <a href="/app" class="btn-primary" style="display:inline-block;margin-top:24px;padding:10px 24px;background:#3b82f6;color:white;border-radius:8px;text-decoration:none;">Return to Dashboard</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security – <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;--green:#22c55e;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;}
+    a{text-decoration:none;}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .nav-links a.nav-active {
+      color: var(--text) !important;
+      background: rgba(59,130,246,0.12);
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .page{max-width:900px;margin:0 auto;padding:80px 24px;}
+    h1{font-size:42px;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px;}
+    h2{font-size:22px;font-weight:700;margin:40px 0 12px;display:flex;align-items:center;gap:10px;}
+    p{color:var(--muted);font-size:15px;margin-bottom:14px;}
+    .sec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:40px;}
+    .sec-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;}
+    .sec-card .icon{font-size:28px;margin-bottom:12px;}
+    .sec-card h3{font-size:16px;font-weight:600;margin-bottom:8px;}
+    .sec-card p{font-size:13px;color:var(--muted);margin:0;}
+    .check-list{list-style:none;margin:16px 0;}
+    .check-list li{padding:5px 0;font-size:14px;color:var(--muted);}
+    .check-list li::before{content:'✓ ';color:var(--green);font-weight:bold;}
+    /* Footer handled by shared public-footer partial */
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security" style="color:var(--text);">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+<div class="page">
+  <h1>🔒 Security</h1>
+  <p>Thermio is built with security as a core requirement. Your fleet data is protected, your staff accounts are secure, and every action is recorded.</p>
+
+  <div class="sec-grid">
+    <div class="sec-card">
+      <div class="icon">✅</div>
+      <h3>Reliable &amp; Audit-Ready</h3>
+      <p>Automatic compliance sheets and digital sign-offs keep your fleet inspection-ready at all times.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🔑</div>
+      <h3>Role-Based Access</h3>
+      <p>Drivers, office staff, and admins each see only what they need. You control who can view, log, or manage records.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🔒</div>
+      <h3>Protected Logins</h3>
+      <p>Staff accounts are protected with strong passwords and automatic lockout after repeated failed attempts.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">📝</div>
+      <h3>Complete Audit Trail</h3>
+      <p>Every action — logins, temperature logs, sign-offs, and admin changes — is recorded with a timestamp and user reference.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🔐</div>
+      <h3>Two-Factor Authentication</h3>
+      <p>Optional role-based authentication for admin accounts adds an extra layer of protection for your workspace.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">📄</div>
+      <h3>Locked Compliance Sheets</h3>
+      <p>Once an admin signs off a weekly sheet, it is digitally locked and cannot be altered — giving you tamper-evident records.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🌡️</div>
+      <h3>Built for Cold Chain</h3>
+      <p>Designed for food transport, catering, and temperature-controlled fleets that need reliable, inspection-ready records.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🔄</div>
+      <h3>Automatic Data Retention</h3>
+      <p>Temperature logs are kept for 12 months by default. Workspace admins can adjust retention periods to match their compliance requirements.</p>
+    </div>
+  </div>
+
+  <h2>🛡️ Account Security</h2>
+  <p>Staff accounts are protected with strong password requirements. New users must set their own password on first login — admins never see or set passwords on behalf of staff.</p>
+  <ul class="check-list">
+    <li>Strong password requirements enforced on every account</li>
+    <li>Forced password setup on first login</li>
+    <li>Admins can reset staff passwords when needed</li>
+    <li>Automatic lockout after repeated failed login attempts</li>
+  </ul>
+
+  <h2>🔄 Data Retention</h2>
+  <p>Temperature logs are automatically retained for 12 months. Workspace admins can configure retention periods to suit their compliance needs.</p>
+</div>
+<%- include('../partials/public-footer') %>
+</body>
+</html>

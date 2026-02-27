@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= workspace.name %> — Sign In</title>
+  <% if (workspace.branding && workspace.branding.favicon) { %>
+    <link rel="icon" href="<%= workspace.branding.favicon %>">
+  <% } %>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    :root {
+      --primary: <%= (workspace.branding && workspace.branding.primaryColor) || '#3b82f6' %>;
+      --accent:  <%= (workspace.branding && workspace.branding.accentColor)  || '#facc15' %>;
+    }
+    .split-login-wrapper { display:flex; height:100vh; overflow:hidden; }
+    .login-side { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 24px; position:relative; background:#0f1115; overflow-y:auto; }
+    .photo-side {
+      flex:1; position:relative; overflow:hidden; background:#0f1115;
+      <% if (workspace.branding && workspace.branding.loginBackground) { %>
+        background-image: url(<%= workspace.branding.loginBackground %>);
+        background-size: cover; background-position: center;
+      <% } %>
+    }
+    @media(max-width:850px){
+      .photo-side{display:none;}
+      .split-login-wrapper { background:#0f1115; }
+    }
+    /* Gradient ball animation (when no background image) */
+    <% if (!workspace.branding || !workspace.branding.loginBackground) { %>
+    .gradient-balls { position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+    .ball { position:absolute; border-radius:50%; filter:blur(80px); opacity:0.4; animation:float 20s infinite ease-in-out; }
+    .ball1 { width:400px; height:400px; background:linear-gradient(135deg, var(--primary), #3730a3); top:-10%; right:-5%; animation-delay:0s; }
+    .ball2 { width:350px; height:350px; background:linear-gradient(135deg, var(--accent), #ea580c); bottom:-15%; left:-10%; animation-delay:5s; }
+    @keyframes float {
+      0%, 100% { transform:translate(0, 0) scale(1); }
+      33% { transform:translate(30px, -30px) scale(1.1); }
+      66% { transform:translate(-20px, 20px) scale(0.9); }
+    }
+    <% } %>
+    .login-card { position:relative; z-index:1; }
+    .login-card { width:100%; max-width:400px; position:relative; z-index:1; }
+    .login-card-wrapper { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:40px 36px; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+    .login-card h1 { font-size:26px; font-weight:700; margin:0 0 4px 0; color:#fff; }
+    .login-card .ws-name { color:var(--primary); font-weight:600; }
+    .login-card .subtitle { color:#9ca3af; margin:0 0 28px 0; font-size:14px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:13px; color:#9ca3af; margin-bottom:6px; }
+    .form-group input { width:100%; box-sizing:border-box; background:#1c1f26; border:1.5px solid #2d3748; color:#fff; padding:12px 14px; border-radius:10px; font-size:15px; outline:none; transition:border-color .2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .pin-wrapper { position:relative; }
+    .pin-wrapper input { padding-right:44px; }
+    .eye-btn { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#6b7280; padding:4px; display:flex; align-items:center; justify-content:center; transition:color .2s; }
+    .eye-btn:hover { color:#9ca3af; }
+    .btn-primary { width:100%; padding:13px; background:linear-gradient(180deg,var(--primary),color-mix(in srgb, var(--primary) 80%, #000)); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 8px 20px rgba(59,130,246,.3); margin-bottom:12px; }
+    .btn-google { width:100%; padding:13px; background:#fff; color:#222; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+    .btn-google svg { width:20px; height:20px; }
+    .divider { display:flex; align-items:center; gap:12px; color:#4b5563; font-size:13px; margin:16px 0; }
+    .divider::before,.divider::after { content:''; flex:1; height:1px; background:#2d3748; }
+    @media(max-width:850px){ .divider::before,.divider::after { display:none; } }
+    .error-msg { background:#1f1014; border:1px solid #ef4444; color:#f87171; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+    .brand-logo { width:36px; height:36px; background:linear-gradient(135deg,var(--primary),color-mix(in srgb, var(--primary) 70%, #000)); border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:#fff; }
+    .back-link { display:inline-block; margin-bottom:24px; color:#6b7280; font-size:13px; text-decoration:none; }
+    .back-link:hover { color:#9ca3af; }
+    .photo-overlay { position:absolute; inset:0; background:rgba(0,0,0,.4); }
+  </style>
+</head>
+<body style="margin:0;padding:0;overflow:hidden;background:#0f1115;">
+<div class="split-login-wrapper">
+  <div class="login-side">
+    <% if (!workspace.branding || !workspace.branding.loginBackground) { %>
+    <div class="gradient-balls">
+      <div class="ball ball1"></div>
+      <div class="ball ball2"></div>
+    </div>
+    <% } %>
+    <div class="login-card">
+      <a href="/login" class="back-link">← Change workspace</a>
+      <div class="login-card-wrapper">
+        <div class="brand">
+          <% if (workspace.branding && workspace.branding.favicon) { %>
+            <img src="<%= workspace.branding.favicon %>" style="width:36px;height:36px;border-radius:9px;object-fit:cover">
+          <% } else { %>
+            <div class="brand-logo">T</div>
+          <% } %>
+          <div style="font-size:18px;font-weight:700;color:#fff"><%= workspace.name %></div>
+        </div>
+        <h1>Sign in</h1>
+        <p class="subtitle">Enter your credentials to access <span class="ws-name"><%= workspace.name %></span>.</p>
+
+        <% if (error) { %>
+          <div class="error-msg"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="/w/<%= workspace.slug %>/login" autocomplete="off" id="loginForm">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Username" required autofocus autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="pin-wrapper">
+              <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+              <button type="button" class="eye-btn" onclick="togglePwd()" title="Show/hide password" aria-label="Toggle password visibility">
+                <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Sign In</button>
+        </form>
+
+        <div class="divider">or</div>
+
+        <a href="/w/<%= workspace.slug %>/auth/google" style="text-decoration:none">
+          <button class="btn-google">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Sign in with Google
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="photo-side">
+    <% if (!workspace.branding || !workspace.branding.loginBackground) { %>
+    <div class="gradient-balls">
+      <div class="ball ball1"></div>
+      <div class="ball ball2"></div>
+    </div>
+    <% } %>
+    <% if (workspace.branding && workspace.branding.loginBackground) { %><div class="photo-overlay"></div><% } %>
+  </div>
+</div>
+<script>
+function togglePwd(){
+  const i = document.getElementById('password');
+  const isHidden = i.type === 'password';
+  i.type = isHidden ? 'text' : 'password';
+  document.getElementById('eye-icon').innerHTML = isHidden
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+// Shake on error
+<% if (error) { %>
+document.getElementById('loginForm').classList.add('shake');
+<% } %>
+</script>
+</body>
+</html>

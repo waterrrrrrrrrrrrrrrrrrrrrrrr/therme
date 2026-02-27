@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= typeof appName !== "undefined" ? appName : "Thermio" %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/app.css">
+</head>
+
+<body class="page">
+
+  <header class="app-header">
+    <div class="app-header-inner">
+      <a class="app-header-link" href="/">
+        
+        <span class="app-title"><%= typeof appName !== "undefined" ? appName : "Thermio" %></span>
+      </a>
+    </div>
+  </header>
+
+  <main class="split-login-wrapper">
+
+    <section class="login-side">
+      <div class="content-stack">
+<div class="hero-header">
+  <h1>Thermio</h1>
+  <div class="subtitle">Temperature & compliance tracking made simple</div>
+</div>
+
+<div class="login-card">
+  <div class="home-card blue">
+    <h2>🔐 Staff Login</h2>
+    <p>Log in to start your shift</p>
+    <a href="/login" class="login-btn">Login</a>
+  </div>
+</div>
+
+
+        <footer class="login-footer">
+          
+        </footer>
+      </div>
+    </section>
+
+    <section class="photo-side">
+      <div class="photo-container">
+        <div class="photo-layer border-blue"></div>
+        <div class="photo-layer border-yellow"></div>
+      </div>
+    </section>
+
+  </main>
+
+<style>
+/* Base Layout Fixes */
+body.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.split-login-wrapper {
+  display: flex;
+  flex: 1;
+  background-color: #121418;
+  overflow: hidden;
+}
+
+/* Positioning the Bubble and Copyright */
+.login-side {
+  flex: 1.2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.hero-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.hero-header h1 {
+  color: #fff;
+  font-size: 2.1rem;
+  margin: 0;
+}
+
+.hero-header .subtitle {
+  color: #9aa4b2;
+  font-size: 1rem;
+  margin-top: 6px;
+}
+.content-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+
+
+.login-footer {
+  color: #666;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Card Content Styling */
+.home-card h2 { color: #fff; margin-top: 0; }
+.home-card p { color: #ccc; margin-bottom: 20px; }
+.login-btn {
+  display: block;
+  background: #0e4773;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.login-btn:hover { background: #1565a3; }
+.home-card {
+  width: 100%;
+  background: #1c1f26;
+  border: 1px solid #2d333d;
+  border-left: 5px solid #0e4773;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+}
+/* Photo Border System [cite: 10, 11] */
+.photo-side {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-layer {
+  position: absolute;
+  inset: 0;
+  /* Shared clip-path ensures borders follow the curve  */
+  clip-path: ellipse(90% 100% at 100% 50%);
+}
+
+.border-blue {
+  background: #0e4773;
+  z-index: 1;
+}
+
+.border-yellow {
+  background: #fcca0c;
+  z-index: 2;
+  /* Shifted slightly to reveal the blue underneath [cite: 15, 16] */
+  width: calc(100% - 10px);
+  height: calc(100% - 20px);
+  top: 10px;
+  left: 10px;
+}
+
+.main-photo {
+  z-index: 3;
+  object-fit: cover;
+  /* Shifted slightly to reveal the yellow underneath [cite: 17, 18] */
+  width: calc(100% - 22px); 
+  height: calc(100% - 32px);
+  top: 16px;
+  left: 16px;
+}
+
+/* Responsiveness */
+@media (max-width: 850px) {
+  .photo-side { display: none; }
+  .login-side { flex: 1; }
+}
+</style>
+
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= person.name %> – Staff Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    /* ── Page layout ── */
+    .stats-page-wrapper { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* ── Hero ── */
+    .stats-hero {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .stats-hero-left { display: flex; align-items: center; gap: 20px; }
+    .stats-hero-avatar {
+      width: 60px; height: 60px; border-radius: 14px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .stats-hero-title h1 { margin: 0 0 6px; font-size: 22px; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .stats-hero-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .stats-hero-meta-item { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .stats-hero-meta-sep { color: var(--border2); }
+    .stats-hero-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    /* ── Role badge ── */
+    .role-badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .role-badge.admin  { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .role-badge.office { background: rgba(59,130,246,0.15); color: var(--blue-light); }
+    .role-badge.driver { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .role-badge.owner  { background: rgba(167,139,250,0.2); color: #a78bfa; }
+
+    /* ── Change role btn ── */
+    .btn-change-role {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--bg3); border: 1px solid var(--border2); color: var(--text-muted);
+      padding: 4px 11px; border-radius: 6px; font-size: 11px; cursor: pointer;
+    }
+    .btn-change-role:hover { color: var(--text); border-color: var(--blue-light); }
+
+    /* ── Transfer btn ── */
+    .btn-transfer {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(239,68,68,0.1); color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.35);
+      padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .btn-transfer:hover { background: rgba(239,68,68,0.18); border-color: #ef4444; }
+
+    /* ── Metric cards ── */
+    .stats-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stats-metric-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+    .metric-value { font-size: 24px; font-weight: 800; color: var(--text); }
+    .metric-unit  { font-size: 12px; color: var(--text-muted); margin-left: 3px; }
+
+    /* ── Detail card ── */
+    .stats-detail-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-left: 4px solid #7c3aed;
+      border-radius: 12px; padding: 22px 24px; margin-bottom: 28px;
+    }
+    .stats-detail-card h3 { margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--text); }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--text-muted); }
+    .stat-value { font-weight: 600; color: var(--text); }
+
+    /* ── Compliance History (archive) ── */
+    .history-section { margin-top: 8px; }
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .history-header-left { display: flex; align-items: center; gap: 10px; }
+    .history-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text); }
+    .history-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .archive-date-input {
+      background: var(--bg2); border: 1px solid var(--border2); color: var(--text);
+      padding: 6px 10px; border-radius: 8px; font-size: 13px; height: 34px; width: 150px;
+    }
+    .archive-date-input::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+
+    /* Accordion */
+    .accordion-content { display: none; }
+    .accordion-content.open { display: block; }
+    .week-trigger {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 13px 18px; cursor: pointer; font-size: 13px; color: var(--text);
+      font-weight: 600; margin-bottom: 6px; text-align: left; transition: border-color 0.15s;
+    }
+    .week-trigger:hover { border-color: var(--blue-light); }
+    .week-trigger .chevron { color: var(--text-muted); font-size: 11px; transition: transform 0.2s; }
+    .week-trigger .trigger-title { display: flex; align-items: center; gap: 8px; }
+    .week-trigger .week-record-count { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+    .week-content { padding: 0 0 12px 14px; }
+
+    .day-trigger {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg3); border: none; border-radius: 8px;
+      padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--text);
+      margin-bottom: 5px; text-align: left;
+    }
+    .day-trigger:hover { background: var(--bg2); }
+    .day-left { font-weight: 600; }
+    .day-right { font-size: 12px; color: var(--text-muted); }
+
+    /* No results */
+    .history-empty {
+      background: var(--bg2); border: 1px dashed var(--border);
+      border-radius: 10px; padding: 40px 24px; text-align: center; margin-top: 16px;
+    }
+    .history-empty p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+    /* ── Role change modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+      padding: 30px 32px; max-width: 440px; width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      margin: auto;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-box h3 { margin: 0 0 6px; font-size: 18px; font-weight: 800; color: var(--text); }
+    .modal-box > p { font-size: 13px; color: var(--text-muted); margin: 0 0 20px; }
+    .modal-role-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .modal-role-option {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border: 1px solid var(--border2); border-radius: 10px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .modal-role-option:hover { border-color: var(--blue-light); background: var(--bg3); }
+    .modal-role-option input[type="radio"] { accent-color: var(--blue); margin-top: 2px; flex-shrink: 0; }
+    .modal-role-option .role-name { font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+    .modal-role-option .role-desc { font-size: 11px; color: var(--text-muted); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 4px; }
+    .btn-cancel-modal { background: var(--bg3); color: var(--text-muted); border: 1px solid var(--border2); padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .btn-confirm-modal { background: var(--blue); color: #fff; border: none; padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; }
+    .btn-confirm-modal:hover { background: #2563eb; }
+
+    /* ── Ownership Transfer modal ── */
+    .transfer-modal-box { max-width: 460px; }
+    .transfer-modal-box h3 { color: #ef4444; }
+    .transfer-warning { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; color: #fca5a5; }
+    .transfer-password-input { width: 100%; box-sizing: border-box; background: var(--bg3); border: 1.5px solid var(--border2); color: var(--text); padding: 10px 13px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+    .transfer-password-input:focus { outline: none; border-color: #ef4444; }
+    .transfer-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 7px; padding: 10px 14px; font-size: 13px; color: #f87171; margin-bottom: 14px; }
+    .btn-confirm-transfer { background: #ef4444; color: #fff; border: none; padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; }
+    .btn-confirm-transfer:hover { background: #dc2626; }
+  </style>
+</head>
+
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'staff' }) %>
+
+<div class="stats-page-wrapper">
+
+  <!-- ── Hero ── -->
+  <div class="stats-hero">
+    <div class="stats-hero-left">
+      <div class="stats-hero-avatar">
+        <%= (person.firstName || person.name || 'U').charAt(0).toUpperCase() %>
+      </div>
+      <div class="stats-hero-title">
+        <h1><%= person.name %></h1>
+        <div class="stats-hero-meta">
+          <% if (person.isOwner) { %>
+            <span class="role-badge owner">Owner</span>
+          <% } else { %>
+            <span class="role-badge <%= person.role %>"><%= person.role %></span>
+            <% if (user?.role === 'admin' && person.id !== user.id) { %>
+              <button class="btn-change-role" onclick="openRoleModal()">✏ Change Role</button>
+            <% } %>
+          <% } %>
+          <% if (person.username) { %>
+            <span class="stats-hero-meta-sep">·</span>
+            <span class="stats-hero-meta-item">@<%= person.username %></span>
+          <% } %>
+          <% if (!person.active || person.deactivated) { %>
+            <span class="stats-hero-meta-sep">·</span>
+            <span class="stats-hero-meta-item" style="color:var(--red);">Inactive</span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="stats-hero-actions">
+      <% if (isSessionOwner && person.role === 'admin' && !person.isOwner && person.id !== user.id) { %>
+        <button class="btn-transfer" onclick="openTransferModal()">⇄ Transfer Ownership</button>
+      <% } %>
+      <a href="/app/staff" class="topbar-btn back-btn">← Back</a>
+    </div>
+  </div>
+
+  <!-- ── Metric Cards ── -->
+  <div class="stats-metric-grid">
+    <div class="stats-metric-card">
+      <div class="metric-label">Shifts</div>
+      <div class="metric-value"><%= staffStats.shiftsCompleted %></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Assets Driven</div>
+      <div class="metric-value"><%= staffStats.trucksDriven %><span class="metric-unit">/ <%= totalVehiclesCount %></span></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Temp Checks</div>
+      <div class="metric-value"><%= staffStats.totalTempChecks %></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">On-Time</div>
+      <div class="metric-value" style="color:<%= staffStats.onTimePct === null ? 'var(--text-muted)' : staffStats.onTimePct >= 90 ? 'var(--green)' : staffStats.onTimePct >= 70 ? 'var(--yellow)' : 'var(--red)' %>">
+        <%= staffStats.onTimePct !== null ? staffStats.onTimePct + '%' : '—' %>
+      </div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Exceptions</div>
+      <div class="metric-value" style="color:<%= staffStats.totalExceptions > 0 ? 'var(--red)' : 'var(--green)' %>">
+        <%= staffStats.totalExceptions %>
+      </div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Best Streak</div>
+      <div class="metric-value"><%= staffStats.longestStreak > 0 ? staffStats.longestStreak : '—' %><span class="metric-unit"><% if (staffStats.longestStreak > 0) { %>d<% } %></span></div>
+    </div>
+  </div>
+
+  <!-- ── Performance Details ── -->
+  <div class="stats-detail-card">
+    <h3>Performance Details</h3>
+    <div class="stat-row"><span class="stat-label">Avg. time between checks</span><span class="stat-value"><%= staffStats.avgTimeBetweenChecks ?? '—' %><% if (staffStats.avgTimeBetweenChecks) { %> min<% } %></span></div>
+    <div class="stat-row"><span class="stat-label">Avg. shift duration</span><span class="stat-value"><%= staffStats.avgShiftDuration ?? '—' %><% if (staffStats.avgShiftDuration) { %> min<% } %></span></div>
+    <div class="stat-row"><span class="stat-label">Highest temp logged</span><span class="stat-value"><%= staffStats.highestTemp ?? '—' %><% if (staffStats.highestTemp !== null && staffStats.highestTemp !== undefined) { %>°C<% } %></span></div>
+    <div class="stat-row"><span class="stat-label">Lowest temp logged</span><span class="stat-value"><%= staffStats.lowestTemp ?? '—' %><% if (staffStats.lowestTemp !== null && staffStats.lowestTemp !== undefined) { %>°C<% } %></span></div>
+    <div class="stat-row"><span class="stat-label">Most used asset</span><span class="stat-value"><%= staffStats.mostDrivenVehicle || '—' %></span></div>
+  </div>
+
+  <!-- ── Compliance History ── -->
+  <div class="history-section">
+    <div class="history-header">
+      <div class="history-header-left">
+        <div>
+          <h2 class="history-title">Compliance History</h2>
+          <div class="history-subtitle">Temperature records grouped by compliance week</div>
+        </div>
+      </div>
+      <input type="date" id="archiveDate" class="archive-date-input" title="Jump to date">
+    </div>
+
+    <%
+      const weeks = Object.keys(weeklyGroups).sort().reverse();
+      const _signOffDay = typeof signOffDay !== 'undefined' ? signOffDay : 5;
+    %>
+
+    <% if (weeks.length === 0) { %>
+      <div class="history-empty">
+        <p>No compliance records found for this staff member.</p>
+      </div>
+    <% } else { %>
+    <div class="archive-accordion" id="historyAccordion">
+      <% weeks.forEach((monday, wIndex) => {
+        const mon = new Date(monday);
+        const weekEnd = new Date(monday);
+        const daysFromMon = _signOffDay === 0 ? 6 : _signOffDay - 1;
+        weekEnd.setDate(mon.getDate() + daysFromMon);
+        const options = { day: 'numeric', month: 'short' };
+        const dayCount = weeklyGroups[monday].length;
+      %>
+      <div class="week-group">
+        <button class="accordion-trigger week-trigger" onclick="toggleAccordion('week-<%= wIndex %>')">
+          <span class="trigger-title">
+            <%= mon.toLocaleDateString('en-AU', options) %> – <%= weekEnd.toLocaleDateString('en-AU', options) %>
+            <span class="week-record-count"><%= dayCount %> day<%= dayCount !== 1 ? 's' : '' %></span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+
+        <div id="week-<%= wIndex %>" class="accordion-content week-content">
+          <% weeklyGroups[monday].forEach((log, dIndex) => { %>
+            <div class="day-group" data-date="<%= log.date %>">
+              <button class="accordion-trigger day-trigger" onclick="toggleAccordion('day-<%= wIndex %>-<%= dIndex %>')">
+                <span class="day-left"><%= new Date(log.date).toLocaleDateString('en-AU',{ weekday:'long', day:'numeric', month:'short' }) %></span>
+                <span class="day-right">🚚 <%= dayLabels[log.date] || '—' %></span>
+              </button>
+              <div id="day-<%= wIndex %>-<%= dIndex %>" class="accordion-content day-content">
+                <% if (!log.temps || log.temps.length === 0) { %>
+                  <div style="padding:12px 14px;color:var(--text-muted);font-size:13px;">No temperature entries for this day.</div>
+                <% } else { %>
+                <div class="temp-row">
+                  <% (log.temps || []).forEach((t, index, arr) => {
+                       const isFirst = index === 0;
+                       const isLast  = index === arr.length - 1;
+                  %>
+                  <div class="temp-chip <%= isFirst ? 'start' : isLast ? 'end' : '' %>">
+                    <div class="temp-time"><%= new Date(t.time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) %></div>
+                    <% if (isFirst) { %>
+                      <div class="temp-multi-grid">
+                        <div class="temp-col"><div class="temp-label">Dispatch</div><div class="temp-value"><%= t.dispatch ?? '—' %>°C</div></div>
+                        <div class="temp-col"><div class="temp-label">Chiller</div><div class="temp-value"><%= t.chiller ?? '—' %>°C</div></div>
+                        <div class="temp-col"><div class="temp-label">Freezer</div><div class="temp-value"><%= t.freezer ?? '—' %>°C</div></div>
+                      </div>
+                    <% } else if (isLast) { %>
+                      <div class="temp-label">End of shift</div>
+                      <div class="temp-value"><%= t.cabin ?? '—' %>°C</div>
+                    <% } else { %>
+                      <div class="temp-label">Cabin</div>
+                      <div class="temp-value"><%= t.cabin ?? '—' %>°C</div>
+                    <% } %>
+                  </div>
+                  <% }) %>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+
+</div><!-- /.stats-page-wrapper -->
+
+<!-- ── Role Change Modal ── -->
+<% if (user?.role === 'admin' && person.id !== user.id && !person.isOwner) { %>
+<div id="roleModal" class="modal-overlay" onclick="if(event.target===this)closeRoleModal()">
+  <div class="modal-box">
+    <h3>Change Role</h3>
+    <p>Assign a new role for <strong><%= person.name %></strong>. Takes effect immediately.</p>
+    <form method="POST" action="/app/staff/update-role" id="roleForm">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="staffId" value="<%= person.id %>">
+      <div class="modal-role-options">
+        <label class="modal-role-option">
+          <input type="radio" name="role" value="driver" <%= person.role === 'driver' ? 'checked' : '' %>>
+          <div>
+            <div class="role-name">Driver</div>
+            <div class="role-desc">Can log temperatures and complete checklists only.</div>
+          </div>
+        </label>
+        <label class="modal-role-option">
+          <input type="radio" name="role" value="office" <%= person.role === 'office' ? 'checked' : '' %>>
+          <div>
+            <div class="role-name">Office</div>
+            <div class="role-desc">View all data, reports, and staff. Cannot change workspace settings.</div>
+          </div>
+        </label>
+        <label class="modal-role-option">
+          <input type="radio" name="role" value="admin" <%= person.role === 'admin' ? 'checked' : '' %>>
+          <div>
+            <div class="role-name">Admin</div>
+            <div class="role-desc">Full access: manage staff, assets, settings, and sign-offs.</div>
+          </div>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel-modal" onclick="closeRoleModal()">Cancel</button>
+        <button type="submit" class="btn-confirm-modal">Save Role</button>
+      </div>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<% if (isSessionOwner && person.role === 'admin' && !person.isOwner && person.id !== user.id) { %>
+<!-- ── Ownership Transfer Modal ── -->
+<div id="transferModal" class="modal-overlay" onclick="if(event.target===this)closeTransferModal()">
+  <div class="modal-box transfer-modal-box">
+    <h3>Transfer Ownership</h3>
+    <div id="transferError" class="transfer-error" style="display:none;"></div>
+    <div class="transfer-warning">
+      <strong>This action cannot be undone.</strong> You will lose all administrative access and be demoted to Driver immediately.
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">Transferring ownership to: <strong style="color:var(--text)"><%= person.name %></strong></p>
+    <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:7px;">Confirm your password to proceed</label>
+    <input type="password" id="transferPassword" class="transfer-password-input" placeholder="Your current password" autocomplete="current-password">
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel-modal" onclick="closeTransferModal()">Cancel</button>
+      <button type="button" class="btn-confirm-transfer" id="transferSubmitBtn" onclick="submitTransfer()">Confirm Transfer</button>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script>
+function toggleAccordion(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+function openRoleModal()  { document.getElementById('roleModal').classList.add('open'); }
+function closeRoleModal() { const m = document.getElementById('roleModal'); if (m) m.classList.remove('open'); }
+function openTransferModal()  {
+  const m = document.getElementById('transferModal');
+  if (!m) return;
+  const errEl = document.getElementById('transferError');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  const pw = document.getElementById('transferPassword');
+  if (pw) pw.value = '';
+  m.classList.add('open');
+}
+function closeTransferModal() { const m = document.getElementById('transferModal'); if (m) m.classList.remove('open'); }
+
+async function submitTransfer() {
+  const pw = document.getElementById('transferPassword');
+  const errEl = document.getElementById('transferError');
+  const btn = document.getElementById('transferSubmitBtn');
+  if (!pw || !pw.value.trim()) {
+    errEl.textContent = 'Please enter your password.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  try {
+    const formData = new FormData();
+    formData.append('newOwnerId', '<%= person.id %>');
+    formData.append('confirmPassword', pw.value);
+    formData.append('_security-token', '<%= security-tokenToken %>');
+    const resp = await fetch('/app/staff/transfer-ownership', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: formData
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      window.location.href = data.redirect || '/app?ownershipTransferred=1';
+    } else {
+      errEl.textContent = data.error || 'An error occurred. Please try again.';
+      errEl.style.display = 'block';
+      pw.value = '';
+      pw.focus();
+      btn.disabled = false;
+      btn.textContent = 'Confirm Transfer';
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Confirm Transfer';
+  }
+}
+
+const AVAILABLE_DATES = <%- JSON.stringify(Object.values(weeklyGroups).flat().map(l => l.date)) %>;
+const dateInput = document.getElementById('archiveDate');
+if (dateInput) {
+  dateInput.value = new Date().toISOString().split('T')[0];
+  dateInput.addEventListener('change', () => {
+    const date = dateInput.value;
+    const accordion = document.getElementById('historyAccordion');
+    if (!AVAILABLE_DATES.includes(date)) {
+      if (accordion) {
+        accordion.insertAdjacentHTML('beforebegin', '<div id="noResultMsg" style="background:var(--bg2);border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text-muted);font-size:14px;margin-bottom:12px;">No results for this date.</div>');
+        setTimeout(() => { const el = document.getElementById('noResultMsg'); if (el) el.remove(); }, 2500);
+      }
+      dateInput.value = '';
+      return;
+    }
+    document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
+    const day = document.querySelector(`[data-date="${date}"]`);
+    if (!day) return;
+    day.closest('.week-group').querySelector('.week-content').classList.add('open');
+    day.querySelector('.day-content').classList.add('open');
+    day.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() { document.getElementById('hamburgerDropdown').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('hamburgerDropdown').classList.remove('open');
+});
+</script>
+</body>
+</html>

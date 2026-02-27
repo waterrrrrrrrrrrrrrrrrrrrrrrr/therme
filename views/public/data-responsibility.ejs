@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Responsibility &amp; Retention &mdash; <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;--green:#22c55e;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;}
+    a{text-decoration:none;}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .page{max-width:900px;margin:0 auto;padding:80px 24px;}
+    h1{font-size:42px;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px;}
+    h2{font-size:22px;font-weight:700;margin:40px 0 12px;display:flex;align-items:center;gap:10px;}
+    p{color:var(--muted);font-size:15px;margin-bottom:14px;}
+    .sec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:40px;}
+    .sec-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;}
+    .sec-card .icon{font-size:28px;margin-bottom:12px;}
+    .sec-card h3{font-size:16px;font-weight:600;margin-bottom:8px;}
+    .sec-card p{font-size:13px;color:var(--muted);margin:0;}
+    .check-list{list-style:none;margin:16px 0;}
+    .check-list li{padding:5px 0;font-size:14px;color:var(--muted);}
+    .check-list li::before{content:'✓ ';color:var(--green);font-weight:bold;}
+    .subtitle{font-size:18px;color:var(--muted);margin-bottom:48px;}
+    footer{text-align:center;padding:40px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:60px;}
+    footer a{color:var(--blue-light);}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+<div class="page">
+  <h1>Data Responsibility &amp; Retention</h1>
+  <p class="subtitle">Understanding who owns your data and how it&rsquo;s managed</p>
+
+  <div class="sec-grid">
+    <div class="sec-card">
+      <div class="icon">🗂️</div>
+      <h3>You Own Your Records</h3>
+      <p>All temperature logs, compliance sheets, signatures, and vehicle records entered into the platform belong to you and your organisation. We act as a data processor, not the data controller for your compliance records.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">📅</div>
+      <h3>Retention is Your Responsibility</h3>
+      <p>You decide how long to keep your records. The platform defaults to 365 days of log retention, configurable by your workspace admin. Australian cold chain and food safety regulations may require you to retain records for longer &mdash; check with your relevant regulator (e.g. DAFF, state food authority).</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">⚖️</div>
+      <h3>We Are Not Your Compliance Authority</h3>
+      <p><%= appName %> is a tool to help you collect and organise compliance data. It does not guarantee that your record-keeping meets any specific HACCP, food safety, or transport regulatory standard. You are responsible for verifying that the records you capture meet your legal obligations.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">📤</div>
+      <h3>Export Your Data Anytime</h3>
+      <p>You can export all your workspace data at any time using the Backup &amp; Export feature. We recommend exporting records regularly and keeping a copy independent of this platform.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🚪</div>
+      <h3>What Happens When You Leave</h3>
+      <p>If your workspace is cancelled or terminated, your data is retained for 30 days to allow export, then permanently deleted. We do not archive or retain deleted workspace data.</p>
+    </div>
+    <div class="sec-card">
+      <div class="icon">🔔</div>
+      <h3>Breach Notification</h3>
+      <p>In the event of a data breach affecting your workspace, we will notify you within 72 hours of becoming aware of the breach. You may have obligations to notify affected individuals and/or the OAIC under the Notifiable Data Breaches scheme.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:48px;">For full details on how we handle your personal information, see our <a href="/privacy" style="color:var(--blue-light);">Privacy Policy</a>.</p>
+</div>
+<%- include('../partials/public-footer') %>
+</body>
+</html>

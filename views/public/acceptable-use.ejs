@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceptable Use Policy &mdash; <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;--green:#22c55e;--red:#ef4444;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;}
+    a{text-decoration:none;}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .page{max-width:900px;margin:0 auto;padding:80px 24px;}
+    h1{font-size:42px;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px;}
+    h2{font-size:22px;font-weight:700;margin:40px 0 12px;display:flex;align-items:center;gap:10px;}
+    p{color:var(--muted);font-size:15px;margin-bottom:14px;}
+    .sec-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px;}
+    .sec-card h3{font-size:16px;font-weight:600;margin-bottom:8px;}
+    .sec-card p{font-size:13px;color:var(--muted);margin:0;}
+    .check-list{list-style:none;margin:16px 0;}
+    .check-list li{padding:5px 0;font-size:14px;color:var(--muted);}
+    .check-list li::before{content:'✓ ';color:var(--green);font-weight:bold;}
+    .x-list{list-style:none;margin:16px 0;}
+    .x-list li{padding:6px 0;font-size:14px;color:var(--muted);display:flex;align-items:flex-start;gap:10px;}
+    .x-list li::before{content:'✕';color:var(--red);font-weight:bold;flex-shrink:0;margin-top:1px;}
+    .bullet-list{list-style:none;margin:16px 0;}
+    .bullet-list li{padding:5px 0;font-size:14px;color:var(--muted);}
+    .bullet-list li::before{content:'— ';color:var(--muted);}
+    .subtitle{font-size:18px;color:var(--muted);margin-bottom:48px;}
+    footer{text-align:center;padding:40px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:60px;}
+    footer a{color:var(--blue-light);}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+<div class="page">
+  <h1>Acceptable Use Policy</h1>
+  <p class="subtitle">What you can and can&rsquo;t do on this platform</p>
+
+  <p><%= appName %> is a professional business platform for temperature compliance tracking. By using it, you agree to use it responsibly and only for its intended purpose.</p>
+
+  <h2>🚫 What You Must Not Do</h2>
+  <ul class="x-list">
+    <li>Enter false, fabricated, or deliberately misleading temperature readings</li>
+    <li>Upload or store any illegal content of any kind</li>
+    <li>Use the platform to harass, intimidate, or harm any person</li>
+    <li>Store personal data that is not relevant to the operation of your fleet (e.g. unrelated private information about staff)</li>
+    <li>Attempt to circumvent, probe, or break the platform&rsquo;s security systems</li>
+    <li>Share your login credentials with unauthorised people</li>
+    <li>Use the platform in a way that could damage other workspaces or the platform&rsquo;s infrastructure</li>
+    <li>Impersonate another person, driver, or organisation within the system</li>
+  </ul>
+
+  <h2>⚖️ Fair Use</h2>
+  <p>The platform is designed for commercial cold chain logistics operations. Unusual or excessive use that degrades performance for other users may result in your account being contacted or temporarily limited.</p>
+
+  <h2>⚠️ Consequences</h2>
+  <p>Breaches of this policy may result in:</p>
+  <ul class="bullet-list">
+    <li>Immediate suspension of your workspace</li>
+    <li>Permanent termination of your account</li>
+    <li>Reporting to relevant authorities where illegal activity is detected</li>
+    <li>No refund of any prepaid subscription fees</li>
+  </ul>
+
+  <h2>📣 Report a Violation</h2>
+  <p>If you become aware of a violation of this policy by another user or workspace, contact us at <a href="mailto:<%= supportEmail %>" style="color:var(--blue-light);"><%= supportEmail %></a>.</p>
+</div>
+<%- include('../partials/public-footer') %>
+</body>
+</html>

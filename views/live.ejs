@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live — <%= workspace.name %></title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .container{max-width:1100px;margin:0 auto;padding:32px 20px;}
+    h1{font-size:22px;font-weight:700;margin:0 0 4px;}
+    .subtitle{color:var(--text-muted);font-size:14px;margin:0 0 24px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+    .toggle-group{display:flex;background:var(--bg3);border-radius:10px;padding:3px;gap:2px;}
+    .toggle-btn{padding:7px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-muted);transition:all .15s;}
+    .toggle-btn.active{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
+    .stats-bar{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+    .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 20px;flex:1;min-width:120px;}
+    .stat-card .val{font-size:24px;font-weight:700;color:var(--blue-light);}
+    .stat-card .lbl{font-size:12px;color:var(--text-muted);margin-top:2px;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow);}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+    .card-name{font-size:15px;font-weight:700;color:var(--text);}
+    .card-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+    .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .dot-active{background:#22c55e;box-shadow:0 0 8px #22c55e80;}
+    .dot-overdue{background:#f59e0b;box-shadow:0 0 8px #f59e0b80;animation:pulse 1.5s infinite;}
+    .dot-idle{background:var(--text-dim);}
+    .dot-offline{background:var(--border2);}
+    @keyframes _pulse_disabled{0%,100%{opacity:1}50%{opacity:.4}}
+    .temp-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+    .chip{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--text-muted);border:1px solid var(--border2);}
+    .chip-cold{background:rgba(59,130,246,0.12);color:#60a5fa;border-color:rgba(59,130,246,0.3);}
+    .chip-ok{background:rgba(34,197,94,0.12);color:#4ade80;border-color:rgba(34,197,94,0.3);}
+    .chip-warn{background:rgba(245,158,11,0.12);color:#fbbf24;border-color:rgba(245,158,11,0.3);}
+    .chip-hot{background:rgba(239,68,68,0.12);color:#f87171;border-color:rgba(239,68,68,0.3);}
+    .last-time{font-size:11px;color:var(--text-muted);margin-top:8px;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .badge-active{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3);}
+    .badge-overdue{background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);}
+    .badge-idle{background:var(--bg3);color:var(--text-muted);border:1px solid var(--border2);}
+    .badge-offline{background:var(--bg3);color:var(--text-dim);border:1px solid var(--border);}
+    .no-data{text-align:center;padding:60px 20px;color:var(--text-dim);font-size:14px;}
+    .refresh-info{font-size:12px;color:var(--text-dim);}
+    .section-view{display:none;}
+    .section-view.active{display:block;}
+    .asset-class{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--bg3);color:var(--text-muted);border:1px solid var(--border2);}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}.stats-bar{gap:10px}}
+  </style>
+</head>
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'live' }) %>
+
+<div class="container">
+  <div class="topbar">
+    <div>
+      <h1>Live Overview</h1>
+      <p class="subtitle">Real-time driver &amp; asset status. Auto-refreshes every 60 seconds.</p>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <span class="refresh-info">Generated: <%= generatedAt %></span>
+      <div class="toggle-group">
+        <button class="toggle-btn active" onclick="switchView('people',this)">People</button>
+        <button class="toggle-btn" onclick="switchView('trucks',this)">Assets</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="val"><%= totalLive %></div><div class="lbl">Active drivers</div></div>
+    <div class="stat-card"><div class="val"><%= byPeople.filter(p=>p.status==='overdue').length %></div><div class="lbl">Overdue</div></div>
+    <div class="stat-card"><div class="val"><%= byTruck.filter(t=>t.status==='active'||t.status==='overdue').length %></div><div class="lbl">Assets in use</div></div>
+    <div class="stat-card"><div class="val"><%= byTruck.filter(t=>t.status==='idle').length %></div><div class="lbl">Assets idle</div></div>
+  </div>
+
+  <div id="view-people" class="section-view active">
+    <% if (byPeople.length === 0) { %>
+      <div class="no-data">No driver activity in the last <%= overdueMinutes %> minutes.</div>
+    <% } else { %>
+    <div class="grid">
+      <% byPeople.forEach(p => { %>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-name"><%= p.name %></div>
+            <div class="card-sub"><%= p.vehicleRego || 'No vehicle' %> <% if (p.vehicleClass) { %>&nbsp;&bull;&nbsp;<span class="asset-class"><%= p.vehicleClass %></span><% } %></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="status-dot dot-<%= p.status %>"></div>
+            <span class="badge badge-<%= p.status %>"><%= p.status %></span>
+          </div>
+        </div>
+        <% if (p.lastTemp !== null && p.lastTemp !== undefined) { %>
+        <div class="temp-chips">
+          <% if (p.lastTemp <= 0) { %><span class="chip chip-cold">Frozen <%= p.lastTemp %>°C</span>
+          <% } else if (p.lastTemp <= 5) { %><span class="chip chip-ok"><%= p.lastTemp %>°C ✓</span>
+          <% } else if (p.lastTemp <= 8) { %><span class="chip chip-warn"><%= p.lastTemp %>°C ⚠</span>
+          <% } else { %><span class="chip chip-hot"><%= p.lastTemp %>°C !</span><% } %>
+        </div>
+        <% } %>
+        <% if (p.lastLogTime) { %>
+        <div class="last-time">Last log: <%= p.lastLogTime %></div>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+
+  <div id="view-trucks" class="section-view">
+    <% if (byTruck.length === 0) { %>
+      <div class="no-data">No assets in use today.</div>
+    <% } else { %>
+    <div class="grid">
+      <% byTruck.forEach(t => { %>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-name"><%= t.rego %></div>
+            <div class="card-sub"><% if (t.class) { %><span class="asset-class"><%= t.class %></span><% } %><% if (t.driverName) { %>&nbsp;&bull;&nbsp;<%= t.driverName %><% } %></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="status-dot dot-<%= t.status %>"></div>
+            <span class="badge badge-<%= t.status %>"><%= t.status %></span>
+          </div>
+        </div>
+        <% if (t.lastTemp !== null && t.lastTemp !== undefined) { %>
+        <div class="temp-chips">
+          <% if (t.lastTemp <= 0) { %><span class="chip chip-cold">Frozen <%= t.lastTemp %>°C</span>
+          <% } else if (t.lastTemp <= 5) { %><span class="chip chip-ok"><%= t.lastTemp %>°C ✓</span>
+          <% } else if (t.lastTemp <= 8) { %><span class="chip chip-warn"><%= t.lastTemp %>°C ⚠</span>
+          <% } else { %><span class="chip chip-hot"><%= t.lastTemp %>°C !</span><% } %>
+        </div>
+        <% } %>
+        <% if (t.lastLogTime) { %>
+        <div class="last-time">Last log: <%= t.lastLogTime %></div>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+function switchView(name, btn) {
+  document.querySelectorAll('.section-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+setTimeout(() => location.reload(), 60000);
+</script>
+</body>
+</html>

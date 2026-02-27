@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dashboard — <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    body.light-mode .stat-tile { background: #fff !important; border-color: #e0e2e8 !important; }
+    body.light-mode .stat-tile .s-sub { color: #9ca3af; }
+  </style>
+</head>
+<body id="appBody">
+
+<%- include('partials/header', { activeNav: '' }) %>
+
+<div class="home-wrapper">
+  <!-- Top: welcome + stats -->
+  <div class="home-top">
+    <div>
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 4px;">Welcome back, <%= user.firstName || user.name %></h1>
+      <div style="color:var(--text-muted);font-size:14px;margin-bottom:var(--sp-lg);">Fleet overview &amp; administration</div>
+
+      <p class="section-label">Today</p>
+      <div class="stats-bar">
+        <div class="stat-tile green">
+          <div class="s-val"><%= activeVehicles || 0 %></div>
+          <div class="s-label">Active Assets</div>
+          <div class="s-sub">Live</div>
+        </div>
+        <div class="stat-tile red">
+          <div class="s-val"><%= overdueVehicles || 0 %></div>
+          <div class="s-label">Overdue</div>
+          <div class="s-sub">&gt; <%= overdueMinutes || 120 %> min</div>
+        </div>
+        <div class="stat-tile blue">
+          <div class="s-val"><%= logsToday || 0 %></div>
+          <div class="s-label">Logs Today</div>
+          <div class="s-sub">Temp checks</div>
+        </div>
+        <div class="stat-tile yellow">
+          <div class="s-val"><% if (highestTempToday !== null && highestTempToday !== undefined) { %><%= highestTempToday %>°<% } else { %>—<% } %></div>
+          <div class="s-label">Highest Temp</div>
+          <div class="s-sub"><%= highestTempTruck || 'Today' %></div>
+        </div>
+        <div class="stat-tile blue">
+          <div class="s-val"><%= vehicleCount %></div>
+          <div class="s-label">Total Assets</div>
+          <div class="s-sub"><% if (workspace.maxVehicles) { %><%= workspace.maxVehicles %> max<% } %></div>
+        </div>
+        <div class="stat-tile green">
+          <div class="s-val"><%= staffCount %></div>
+          <div class="s-label">Total Staff</div>
+          <div class="s-sub"><% if (workspace.maxUsers) { %><%= workspace.maxUsers %> max<% } %></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: total stats -->
+    <div class="total-stats-panel">
+      <h3>Total Stats</h3>
+      <div class="ts-row">
+        <span class="ts-label">Total logs (all time)</span>
+        <span class="ts-val blue"><%= totalLogs || 0 %></span>
+      </div>
+      <div class="ts-row">
+        <span class="ts-label">Total assets</span>
+        <span class="ts-val"><%= vehicleCount || 0 %></span>
+      </div>
+      <div class="ts-row">
+        <span class="ts-label">Total staff</span>
+        <span class="ts-val"><%= staffCount || 0 %></span>
+      </div>
+      <div class="ts-row">
+        <span class="ts-label">Avg temp today</span>
+        <span class="ts-val yellow"><%= (avgTempToday !== null && avgTempToday !== undefined) ? avgTempToday + '°' : '—' %></span>
+      </div>
+      <div class="ts-row">
+        <span class="ts-label">Exceptions today</span>
+        <span class="ts-val <%= (totalExceptionsToday || 0) > 0 ? 'red' : 'green' %>"><%= totalExceptionsToday || 0 %></span>
+      </div>
+      <div class="ts-row">
+        <span class="ts-label">Last log recorded</span>
+        <span class="ts-val" style="font-size:12px;"><%= lastLogTime || 'No logs today' %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcuts -->
+  <p class="section-label" style="margin-top:var(--sp-xl);margin-bottom:var(--sp-md);">Shortcuts</p>
+  <div class="shortcuts-grid">
+    <div class="home-card blue">
+      <h2>Assets <span class="muted">(<%= vehicleCount %>)</span></h2>
+      <p>Fleet status, analytics and compliance records</p>
+      <a href="/app/assets">Open Assets</a>
+    </div>
+    <div class="home-card yellow">
+      <h2>Staff <span class="muted">(<%= staffCount %>)</span></h2>
+      <p>Team activity, shifts and performance</p>
+      <a href="/app/staff">Open Staff</a>
+    </div>
+    <div class="home-card red">
+      <h2>Exceptions</h2>
+      <p>Out-of-range temps, missed logs and overdue assets</p>
+      <a href="/app/exceptions">View Exceptions</a>
+    </div>
+    <% if (user.role === 'admin') { %>
+    <div class="home-card purple">
+      <h2>Settings</h2>
+      <p>Branding, compliance and workspace configuration</p>
+      <a href="/app/settings">Open Settings</a>
+    </div>
+    <% } %>
+    <div class="home-card green">
+      <h2>More Tools</h2>
+      <p>Live view, monitor board, event console, exports and scan</p>
+      <a href="/app/misc">Browse Tools</a>
+    </div>
+  </div>
+
+  <div class="home-footer">
+    Logged in as <strong><%= user.role.toUpperCase() %></strong> &bull; <a href="/logout">Sign Out</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

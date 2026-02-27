@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Stats — <%= appName %></title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .sa-header{background:#12151b;border-bottom:1px solid #2d3748;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+    .sa-nav{display:flex;align-items:center;gap:20px;}
+    .sa-nav a{color:#9ca3af;text-decoration:none;font-size:14px;}
+    .sa-nav a:hover{color:#fff;}
+    .sa-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .sa-user{display:flex;align-items:center;gap:10px;}
+    .sa-user-label{color:#9ca3af;font-size:13px;}
+    .sa-user-name{color:#fff;font-weight:600;}
+    .container{max-width:1200px;margin:0 auto;padding:32px 24px;}
+    h1{font-size:26px;font-weight:700;margin:0 0 4px;}
+    .subtitle{color:#9ca3af;font-size:14px;margin:0 0 28px;}
+    /* Summary cards */
+    .stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:36px;}
+    .stat-card{background:linear-gradient(180deg,#1f2328,#181b20);border-radius:14px;padding:22px 24px;border:1px solid #2d3748;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+    .stat-card-val{font-size:36px;font-weight:800;color:#fff;line-height:1;}
+    .stat-card-lbl{font-size:13px;color:#9ca3af;margin-top:8px;}
+    .stat-card-accent{border-left:4px solid #7c3aed;}
+    .stat-card-accent-green{border-left:4px solid #4ade80;}
+    .stat-card-accent-blue{border-left:4px solid #60a5fa;}
+    .stat-card-accent-yellow{border-left:4px solid #fbbf24;}
+    /* Chart grid */
+    .charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:24px;}
+    .chart-card{background:linear-gradient(180deg,#1f2328,#181b20);border-radius:14px;padding:24px;border:1px solid #2d3748;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+    .chart-title{font-size:15px;font-weight:700;color:#e5e7eb;margin-bottom:16px;}
+    .chart-wrap{position:relative;height:260px;}
+    .empty-note{color:#4b5563;font-size:13px;text-align:center;padding:60px 0;}
+  </style>
+</head>
+<body>
+<div class="sa-header">
+  <span style="font-size:18px;font-weight:700;color:#fff"><%= appName %></span>
+  <div class="sa-nav">
+    <a href="/portal">Dashboard</a>
+    <a href="/portal/logout">Logout</a>
+    <div class="sa-user">
+      <div class="sa-user-label">Logged in as</div>
+      <div class="sa-avatar"><%= (user.username || 'S').charAt(0).toUpperCase() %></div>
+      <div class="sa-user-name"><%= user.username %></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <h1>Platform Stats</h1>
+  <p class="subtitle">Live overview across all workspaces</p>
+
+  <!-- Summary cards -->
+  <div class="stat-cards">
+    <div class="stat-card stat-card-accent">
+      <div class="stat-card-val"><%= (stats.totalLogs || 0).toLocaleString() %></div>
+      <div class="stat-card-lbl">Total Logs (all time)</div>
+    </div>
+    <div class="stat-card stat-card-accent-green">
+      <div class="stat-card-val"><%= (stats.logsToday || 0).toLocaleString() %></div>
+      <div class="stat-card-lbl">Total Logs Today</div>
+    </div>
+    <div class="stat-card stat-card-accent-blue">
+      <div class="stat-card-val"><%= (stats.totalWorkspaces || 0).toLocaleString() %></div>
+      <div class="stat-card-lbl">Total Workspaces</div>
+    </div>
+    <div class="stat-card stat-card-accent-yellow">
+      <div class="stat-card-val"><%= (stats.totalUsers || 0).toLocaleString() %></div>
+      <div class="stat-card-lbl">Total Users</div>
+    </div>
+  </div>
+
+  <% if (stats.workspaces.length === 0) { %>
+    <div class="empty-note">No workspaces found. Create a workspace to see stats.</div>
+  <% } else { %>
+
+  <!-- Charts grid -->
+  <div class="charts-grid">
+
+    <!-- Chart 1: Logs per workspace -->
+    <div class="chart-card">
+      <div class="chart-title">Logs per Workspace (all time)</div>
+      <div class="chart-wrap">
+        <canvas id="chartLogs"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Users per workspace -->
+    <div class="chart-card">
+      <div class="chart-title">Users per Workspace</div>
+      <div class="chart-wrap">
+        <canvas id="chartUsers"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Vehicles per workspace -->
+    <div class="chart-card">
+      <div class="chart-title">Vehicles per Workspace</div>
+      <div class="chart-wrap">
+        <canvas id="chartVehicles"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 4: Logs today per workspace -->
+    <div class="chart-card">
+      <div class="chart-title">Logs Today per Workspace</div>
+      <div class="chart-wrap">
+        <canvas id="chartLogsToday"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const wsLabels     = <%- JSON.stringify((stats.workspaces || []).map(w => w.name || '')) %>;
+    const logCounts    = <%- JSON.stringify((stats.workspaces || []).map(w => w.logCount    || 0)) %>;
+    const userCounts   = <%- JSON.stringify((stats.workspaces || []).map(w => w.userCount   || 0)) %>;
+    const vehicleCounts= <%- JSON.stringify((stats.workspaces || []).map(w => w.vehicleCount|| 0)) %>;
+    const todayCounts  = <%- JSON.stringify((stats.workspaces || []).map(w => w.logsToday   || 0)) %>;
+
+    const CHART_DEFAULTS = {
+      type: 'bar',
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1f2328',
+            borderColor: '#2d3748',
+            borderWidth: 1,
+            titleColor: '#e5e7eb',
+            bodyColor: '#9ca3af'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#9ca3af', font: { size: 11 }, maxRotation: 30 },
+            grid: { color: '#1e2330' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#9ca3af', font: { size: 11 }, precision: 0 },
+            grid: { color: '#1e2330' }
+          }
+        }
+      }
+    };
+
+    function makeChart(canvasId, data, color) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      return new Chart(ctx, {
+        type: CHART_DEFAULTS.type,
+        data: {
+          labels: wsLabels,
+          datasets: [{
+            data: data,
+            backgroundColor: color + 'cc',
+            borderColor: color,
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: CHART_DEFAULTS.options
+      });
+    }
+
+    makeChart('chartLogs',      logCounts,     '#7c3aed');
+    makeChart('chartUsers',     userCounts,    '#60a5fa');
+    makeChart('chartVehicles',  vehicleCounts, '#fbbf24');
+    makeChart('chartLogsToday', todayCounts,   '#4ade80');
+  </script>
+
+  <% } %>
+</div>
+</body>
+</html>

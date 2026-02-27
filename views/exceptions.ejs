@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exception Report – <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .page-header { padding: 28px 32px 16px; max-width: 960px; margin: 0 auto; }
+    .page-header h1 { margin: 0 0 4px; font-size: 22px; color: var(--text); }
+    .page-header .subtitle { color: var(--text-muted); font-size: 14px; }
+    .filters-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 0 auto 24px; max-width: 960px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .filter-group input, .filter-group select { background: var(--bg-input); color: var(--text); border: 1px solid var(--border2); border-radius: 6px; padding: 7px 10px; font-size: 13px; }
+    .filter-btn { background: var(--blue); color: white; border: none; border-radius: 8px; padding: 9px 20px; cursor: pointer; font-size: 13px; font-weight: 600; align-self: flex-end; white-space: nowrap; }
+    .filter-btn:hover { filter: brightness(1.1); }
+    .clear-btn { background: transparent; color: var(--text-muted); border: 1px solid var(--border2); border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 13px; text-decoration: none; align-self: flex-end; }
+    .clear-btn:hover { color: var(--text); border-color: var(--blue); }
+    .exc-table { margin: 0 auto; max-width: 960px; padding: 0 32px; }
+    .exc-summary { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .exc-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; flex: 1; min-width: 120px; }
+    .exc-stat .count { font-size: 26px; font-weight: 700; }
+    .exc-stat .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .exc-stat.critical .count { color: var(--red); }
+    .exc-stat.warning .count { color: var(--yellow); }
+    .exc-stat.info .count { color: var(--blue-light); }
+    .exc-stat.total .count { color: var(--text); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: var(--bg3); border-bottom: 1px solid var(--border2); padding: 10px 14px; text-align: left; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:hover { background: var(--bg3); }
+    td { padding: 10px 14px; font-size: 13px; color: var(--text); }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .badge-critical { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .badge-warning  { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-info     { background: rgba(59,130,246,0.12); color: var(--blue-light); border: 1px solid rgba(59,130,246,0.3); }
+    .type-icon { font-size: 16px; margin-right: 4px; }
+    .empty-state { text-align: center; padding: 60px; color: var(--text-muted); }
+    .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+    .asset-link { color: var(--blue-light); text-decoration: none; }
+    .asset-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'exceptions' }) %>
+
+<div class="page-header">
+  <h1>⚠️ Exception Report</h1>
+  <div class="subtitle">Out-of-range temperatures, missed logs, overdue assets, and late sign-offs.</div>
+</div>
+
+<div class="filters-bar">
+  <form method="GET" action="/app/exceptions" style="display:contents;">
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" name="from" value="<%= query.from %>" placeholder="DD/MM/YYYY">
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" name="to" value="<%= query.to %>" placeholder="DD/MM/YYYY">
+    </div>
+    <div class="filter-group">
+      <label>Asset</label>
+      <select name="vehicle">
+        <option value="">All Assets</option>
+        <% vehicles.forEach(v => { %>
+          <option value="<%= v.id %>" <%= query.vehicle === v.id ? 'selected' : '' %>><%= v.rego %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Driver</label>
+      <select name="driver">
+        <option value="">All Drivers</option>
+        <% allUsers.forEach(u => { %>
+          <option value="<%= u.id %>" <%= query.driver === u.id ? 'selected' : '' %>><%= u.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <button type="submit" class="filter-btn">Apply Filters</button>
+    <a href="/app/exceptions" class="clear-btn">Clear</a>
+  </form>
+</div>
+
+<%
+  const critCount = exceptions.filter(e => e.severity === 'critical').length;
+  const warnCount = exceptions.filter(e => e.severity === 'warning').length;
+  const infoCount = exceptions.filter(e => e.severity === 'info').length;
+%>
+
+<div class="exc-table">
+  <div class="exc-summary">
+    <div class="exc-stat critical">
+      <div class="count"><%= critCount %></div>
+      <div class="label">Critical</div>
+    </div>
+    <div class="exc-stat warning">
+      <div class="count"><%= warnCount %></div>
+      <div class="label">Warnings</div>
+    </div>
+    <div class="exc-stat info">
+      <div class="count"><%= infoCount %></div>
+      <div class="label">Info</div>
+    </div>
+    <div class="exc-stat total">
+      <div class="count"><%= exceptions.length %></div>
+      <div class="label">Total Exceptions</div>
+    </div>
+  </div>
+
+  <% if (exceptions.length === 0) { %>
+    <div class="empty-state">
+      <h3>✅ No exceptions found</h3>
+      <p>No out-of-range temperatures, missed logs, or overdue assets for the selected period.</p>
+    </div>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Severity</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Type</th>
+        <th>Asset</th>
+        <th>Driver</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% exceptions.forEach(e => {
+        const typeIcons = { out_of_range: '🌡️', missed_checklist: '📋', overdue: '⏰', missed_signoff: '🔏' };
+      %>
+      <tr>
+        <td><span class="badge badge-<%= e.severity %>"><%= e.severity %></span></td>
+        <td><%= e.date %></td>
+        <td><%= e.time %></td>
+        <td><span class="type-icon"><%= typeIcons[e.type] || '⚠️' %></span><%= e.type.replace(/_/g,' ') %></td>
+        <td><a href="/app/assets/<%= e.vehicleId %>" class="asset-link"><%= e.vehicle %></a></td>
+        <td><%= e.driver %></td>
+        <td><%= e.description %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

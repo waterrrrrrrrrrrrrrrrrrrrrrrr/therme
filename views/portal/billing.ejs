@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing — <%= appName %></title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .sa-header{background:#12151b;border-bottom:1px solid #2d3748;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+    .sa-nav{display:flex;align-items:center;gap:20px;}
+    .sa-nav a{color:#9ca3af;text-decoration:none;font-size:14px;}
+    .sa-nav a:hover{color:#fff;}
+    .container{max-width:800px;margin:0 auto;padding:48px 24px;}
+    .billing-placeholder{text-align:center;padding:80px 24px;background:linear-gradient(180deg,#1f2328,#181b20);border-radius:16px;border:1px solid #2d3748;}
+    .billing-placeholder h1{font-size:26px;font-weight:700;margin-bottom:12px;}
+    .billing-placeholder p{color:#9ca3af;font-size:15px;margin-bottom:28px;}
+    .back-link{color:#6b7280;text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:4px;margin-bottom:24px;}
+    .back-link:hover{color:#9ca3af;}
+  </style>
+</head>
+<body>
+<div class="sa-header">
+  <span style="font-size:18px;font-weight:700;color:#fff"><%= appName %></span>
+  <div class="sa-nav">
+    <a href="/portal">Dashboard</a>
+    <a href="/portal/logout">Logout</a>
+  </div>
+</div>
+<div class="container">
+  <a href="/portal" class="back-link">← Back to Dashboard</a>
+  <div class="billing-placeholder">
+    <div style="font-size:48px;margin-bottom:20px;">💳</div>
+    <h1>Billing & Subscriptions</h1>
+    <p>Billing management is not yet configured. This section will show workspace subscription details, invoices, and payment settings once integrated with a billing provider.</p>
+    <a href="/portal" style="display:inline-block;padding:12px 28px;background:linear-gradient(180deg,#7c3aed,#6d28d9);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;">Return to Dashboard</a>
+  </div>
+</div>
+</body>
+</html>

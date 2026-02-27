@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🚚 <%= truck.rego %> – Asset Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    /* ── Page layout ── */
+    .stats-page-wrapper { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+    .stats-main-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+    @media (max-width: 1100px) { .stats-main-layout { grid-template-columns: 1fr; } }
+
+    /* ── Hero header ── */
+    .stats-hero {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .stats-hero-left { display: flex; align-items: center; gap: 16px; }
+    .stats-hero-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .stats-hero-title h1 { margin: 0; font-size: 22px; font-weight: 800; color: var(--text); }
+    .stats-hero-title p { margin: 3px 0 0; font-size: 13px; color: var(--text-muted); }
+    .stats-hero-actions { display: flex; gap: 8px; }
+
+    /* ── Metric cards ── */
+    .stats-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stats-metric-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .stats-metric-card .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .stats-metric-card .metric-value { font-size: 22px; font-weight: 800; color: var(--text); }
+    .stats-metric-card .metric-unit { font-size: 12px; color: var(--text-muted); margin-left: 2px; }
+
+    /* ── Two-col layout ── */
+    .stats-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 680px) { .stats-two-col { grid-template-columns: 1fr; } }
+
+    /* ── Detail card ── */
+    .stats-detail-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .stats-detail-card h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: var(--text); }
+    .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--text-muted); }
+    .stat-value { font-weight: 600; color: var(--text); }
+
+    /* ── QR card ── */
+    .qr-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .qr-card h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); }
+    .qr-card img { border-radius: 8px; max-width: 180px; }
+    .qr-card code { font-size: 10px; color: var(--text-muted); word-break: break-all; text-align: center; }
+
+    /* ── Compliance History (archive) ── */
+    .archive-section { max-width: 1100px; margin: 0 auto 30px; padding: 0 20px; }
+    .archive-header-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 12px; margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .archive-main-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text); }
+    .archive-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .archive-date-input {
+      background: var(--bg2); border: 1px solid var(--border2); color: var(--text);
+      padding: 6px 10px; border-radius: 8px; font-size: 13px; height: 34px; width: 150px;
+    }
+    .archive-date-input::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+    .accordion-content { display: none; }
+    .accordion-content.open { display: block; }
+    .history-empty {
+      background: var(--bg2); border: 1px dashed var(--border);
+      border-radius: 10px; padding: 40px 24px; text-align: center; margin-top: 4px;
+    }
+    .history-empty p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+    /* ── Service records ── */
+    .service-section {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 4px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-bottom: 24px;
+    }
+    .service-section h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: var(--text); }
+    .service-due-banner {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #f59e0b;
+      font-weight: 600;
+    }
+    .service-add-form { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: flex-end; }
+    .service-add-form select,
+    .service-add-form input,
+    .service-add-form textarea {
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .service-add-form select { min-width: 180px; }
+    .service-add-form input[type="date"] { width: 140px; }
+    .service-add-form textarea { flex: 1; min-width: 200px; min-height: 36px; resize: vertical; }
+    .service-add-form button {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .service-add-form button:hover { background: #2563eb; }
+    .service-record-list { display: flex; flex-direction: column; gap: 8px; }
+    .service-record {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+    .service-record-body { flex: 1; }
+    .service-record-cat {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(245,158,11,0.15);
+      color: #f59e0b;
+      margin-bottom: 4px;
+    }
+    .service-record-desc { color: var(--text); margin-bottom: 4px; }
+    .service-record-meta { color: var(--text-muted); font-size: 11px; }
+    .service-record-due { color: #f59e0b; font-weight: 600; }
+    .service-record-due.overdue { color: var(--red); }
+    .btn-del-service {
+      background: none;
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--red);
+      padding: 3px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .btn-del-service:hover { background: rgba(239,68,68,0.08); }
+    .service-empty { color: var(--text-muted); font-size: 12px; text-align: center; padding: 14px; }
+
+    /* ── Notes ── */
+    .notes-section { max-width: 1100px; margin: 0 auto 40px; padding: 0 20px; }
+    .notes-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+    .notes-add-form { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; }
+    .notes-add-form h3 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
+    .notes-form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+    .notes-form-row select,
+    .notes-form-row textarea {
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .notes-form-row select { min-width: 150px; }
+    .notes-form-row textarea { flex: 1; resize: vertical; min-height: 60px; }
+    .notes-form-row button { background: var(--blue); color: #fff; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; align-self: flex-end; }
+    .notes-form-row button:hover { background: #2563eb; }
+    .notes-list { display: flex; flex-direction: column; gap: 10px; }
+    .note-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .note-card .note-body { flex: 1; }
+    .note-type { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; }
+    .note-type.maintenance { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .note-type.refrigeration { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .note-type.service { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .note-type.general { background: rgba(156,163,175,0.15); color: #9ca3af; }
+    .note-content { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+    .note-meta { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+    .note-delete { background: none; border: 1px solid rgba(239,68,68,0.3); color: var(--red); padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+    .note-delete:hover { background: rgba(239,68,68,0.1); }
+    .notes-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px; background: var(--bg2); border: 1px dashed var(--border); border-radius: 8px; }
+  </style>
+</head>
+
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'assets' }) %>
+
+<div class="stats-page-wrapper">
+<div class="stats-main-layout">
+  <div class="stats-main-content">
+
+  <!-- ── Hero ── -->
+  <div class="stats-hero">
+    <div class="stats-hero-left">
+      <div class="stats-hero-icon">🚚</div>
+      <div class="stats-hero-title">
+        <h1><%= truck.rego %></h1>
+        <p><%= truck.assetType || 'Asset' %><% if (truck.temperatureType) { %> &bull; <%= truck.temperatureType %><% } %> &bull; Asset analytics</p>
+      </div>
+    </div>
+    <div class="stats-hero-actions">
+      <a href="/app/assets" class="topbar-btn back-btn">← Back</a>
+    </div>
+  </div>
+
+  <!-- ── Service Due Banner ── -->
+  <%
+    const todayStr = new Date().toISOString().split('T')[0];
+    const serviceRecords = truck.serviceRecords || [];
+    const soon14 = new Date(); soon14.setDate(soon14.getDate() + 14);
+    const soon14Str = soon14.toISOString().split('T')[0];
+    const upcomingService = serviceRecords.filter(r => r.dueDate && r.dueDate >= todayStr && r.dueDate <= soon14Str);
+    const overdueService = serviceRecords.filter(r => r.dueDate && r.dueDate < todayStr);
+  %>
+  <% if (overdueService.length > 0) { %>
+    <div class="service-due-banner">
+      🔴 Overdue: <%= overdueService.length %> service record<%= overdueService.length !== 1 ? 's' : '' %> past due date!
+    </div>
+  <% } else if (upcomingService.length > 0) { %>
+    <div class="service-due-banner">
+      ⚠️ Service Due Soon: <%= upcomingService.length %> upcoming service record<%= upcomingService.length !== 1 ? 's' : '' %> within 14 days.
+    </div>
+  <% } %>
+
+  <!-- ── Metric Cards ── -->
+  <div class="stats-metric-grid">
+    <div class="stats-metric-card">
+      <div class="metric-label">Total Shifts</div>
+      <div class="metric-value"><%= vehicleStats.totalShifts %></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Temp Checks</div>
+      <div class="metric-value"><%= vehicleStats.totalTempChecks %></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Highest Temp</div>
+      <div class="metric-value"><%= vehicleStats.highestTemp ?? '—' %><span class="metric-unit"><% if (vehicleStats.highestTemp !== null && vehicleStats.highestTemp !== undefined) { %>°C<% } %></span></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Lowest Temp</div>
+      <div class="metric-value"><%= vehicleStats.lowestTemp ?? '—' %><span class="metric-unit"><% if (vehicleStats.lowestTemp !== null && vehicleStats.lowestTemp !== undefined) { %>°C<% } %></span></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Avg Between Checks</div>
+      <div class="metric-value"><%= vehicleStats.avgTimeBetweenChecks ?? '—' %><span class="metric-unit"><% if (vehicleStats.avgTimeBetweenChecks) { %>min<% } %></span></div>
+    </div>
+    <div class="stats-metric-card">
+      <div class="metric-label">Avg Shift Duration</div>
+      <div class="metric-value"><%= vehicleStats.avgShiftDuration ?? '—' %><span class="metric-unit"><% if (vehicleStats.avgShiftDuration) { %>min<% } %></span></div>
+    </div>
+  </div>
+
+  <!-- ── Two-col: Driver Stats + QR ── -->
+  <div class="stats-two-col">
+    <div class="stats-detail-card">
+      <h3>👤 Driver Breakdown</h3>
+      <% if (!driverStats || driverStats.length === 0) { %>
+        <div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0;">No driver records yet.</div>
+      <% } else { %>
+        <% driverStats.slice(0,5).forEach(d => { %>
+          <div class="stat-row">
+            <span class="stat-label"><%= d.driverName %></span>
+            <span class="stat-value"><%= d.shifts %> shifts &bull; <%= d.totalTempChecks %> checks</span>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div class="qr-card">
+      <h3>🔗 Asset QR Code</h3>
+      <img src="<%= qrImage %>" alt="QR Code">
+      <code>/app/truck/<%= truck.id %></code>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center;margin:0;">Drivers scan this to start logging temps</p>
+    </div>
+  </div>
+
+  </div><!-- /.stats-main-content -->
+
+  <!-- ── RIGHT SIDEBAR ── -->
+  <div class="stats-sidebar">
+
+  <!-- ── Service Records ── -->
+  <div class="service-section" style="margin-bottom:0;">
+    <h3>🛠 Service Records</h3>
+
+    <% if (user.role === 'admin' || user.role === 'office') { %>
+    <form class="service-add-form" method="POST" action="/app/assets/<%= truck.id %>/service/add">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <select name="category" required>
+        <option value="" disabled selected>Category…</option>
+        <option value="Vehicle Related">🚚 Vehicle Related</option>
+        <option value="Freezer Upgrade/Service">🧊 Freezer Upgrade/Service</option>
+        <option value="Chiller Upgrade/Service">❄️ Chiller Upgrade/Service</option>
+        <option value="General Maintenance">🔧 General Maintenance</option>
+      </select>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:140px;">
+        <input type="date" name="serviceDate" required max="<%= todayStr %>" placeholder="Last Service Date" style="margin:0;">
+        <label style="font-size:10px;color:var(--text-muted);margin:0;padding:0 4px;">Last Service Date</label>
+      </div>
+      <textarea name="description" placeholder="Description…" required></textarea>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:140px;">
+        <input type="date" name="dueDate" placeholder="Next Service Due" style="margin:0;">
+        <label style="font-size:10px;color:var(--text-muted);margin:0;padding:0 4px;">Next Service Due</label>
+      </div>
+      <button type="submit">+ Add Record</button>
+    </form>
+    <% } %>
+
+    <% if (serviceRecords.length === 0) { %>
+      <div class="service-empty">No service records yet. Add the first one above.</div>
+    <% } else { %>
+      <div class="service-record-list">
+        <% serviceRecords.slice().sort((a,b) => (b.serviceDate||'').localeCompare(a.serviceDate||'')).forEach(r => {
+          const isDue = r.dueDate && r.dueDate >= todayStr && r.dueDate <= soon14Str;
+          const isOverdue = r.dueDate && r.dueDate < todayStr;
+        %> 
+        <div class="service-record">
+          <div class="service-record-body">
+            <span class="service-record-cat"><%= r.category %></span>
+            <div class="service-record-desc"><%= r.description %></div>
+            <div class="service-record-meta">
+              Serviced: <strong><%= r.serviceDate || '—' %></strong>
+              <% if (r.dueDate) { %>
+                &bull; <span class="service-record-due <%= isOverdue ? 'overdue' : '' %>">
+                  Next due: <%= r.dueDate %><%= isOverdue ? ' ⚠️ OVERDUE' : isDue ? ' ⚠️ SOON' : '' %>
+                </span>
+              <% } %>
+            </div>
+          </div>
+          <% if (user.role === 'admin') { %>
+          <form method="POST" action="/app/assets/<%= truck.id %>/service/<%= r.id %>/delete" onsubmit="return confirm('Delete this service record?')">
+            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <button class="btn-del-service" type="submit">Delete</button>
+          </form>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- ── Asset Notes (moved to sidebar) ── -->
+  <div style="max-width:100%;margin:24px 0 0;padding:0;">
+    <h3 style="font-size:15px;font-weight:700;margin:0 0 14px;color:var(--text);">🗒 Asset Notes</h3>
+    <% if (user.role === 'admin') { %>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:16px;">
+      <form method="POST" action="/app/assets/<%= truck.id %>/notes">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <select name="type" required style="background:var(--bg-input);color:var(--text);border:1px solid var(--border2);padding:8px 10px;border-radius:6px;font-size:12px;font-family:inherit;">
+            <option value="maintenance">🔧 Maintenance</option>
+            <option value="refrigeration">❄️ Refrigeration</option>
+            <option value="service">🛠 Service</option>
+            <option value="general">📋 General</option>
+          </select>
+          <textarea name="content" placeholder="Enter note..." required style="background:var(--bg-input);color:var(--text);border:1px solid var(--border2);padding:8px 10px;border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;"></textarea>
+          <button type="submit" style="background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Add Note</button>
+        </div>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (!vehicleNotes || vehicleNotes.length === 0) { %>
+      <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:14px;background:var(--bg2);border:1px dashed var(--border);border-radius:8px;">No notes yet for this asset.</div>
+    <% } else { %>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <% vehicleNotes.slice().reverse().forEach(function(note) { %>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="flex:1;">
+          <span class="note-type <%= note.type %>"><%= note.type %></span>
+          <div style="font-size:12px;color:var(--text);line-height:1.4;white-space:pre-wrap;margin-top:4px;"><%= note.content %></div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+            <%= note.createdByName || 'Unknown' %> &bull;
+            <%= new Date(note.createdAt).toLocaleString('en-AU', { timeZone: (workspace.settings && workspace.settings.timezone) ? workspace.settings.timezone : 'Australia/Perth', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+          </div>
+        </div>
+        <% if (user.role === 'admin') { %>
+        <form method="POST" action="/app/assets/<%= truck.id %>/notes/<%= note.id %>/delete" onsubmit="return confirm('Delete this note?')" style="margin:0;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <button style="background:none;border:1px solid rgba(239,68,68,0.3);color:var(--red);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:10px;" type="submit">Delete</button>
+        </form>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+  </div>
+
+  </div><!-- /.stats-sidebar -->
+</div><!-- /.stats-main-layout -->
+</div><!-- /.stats-page-wrapper -->
+
+<% if (typeUpdated) { %>
+<div style="max-width:1100px;margin:0 auto 12px;padding:0 20px;">
+  <div class="alert alert-success">Asset type updated successfully.</div>
+</div>
+<% } %>
+
+<!-- ── Edit Asset Details (Admin) ── -->
+<% if (user.role === 'admin') { %>
+<div style="max-width:1100px;margin:0 auto 24px;padding:0 20px;">
+  <div class="stats-detail-card" style="border-left-color:#3b82f6;">
+    <h3>Edit Asset Details</h3>
+    <form method="POST" action="/app/assets/<%= truck.id %>/edit-type" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <div style="flex:1;min-width:160px;">
+        <label style="display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Asset Type</label>
+        <select name="assetType" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;">
+          <option value="Vehicle"        <%= truck.assetType === 'Vehicle'         ? 'selected' : '' %>>Vehicle (Truck)</option>
+          <option value="Fridge"         <%= truck.assetType === 'Fridge'          ? 'selected' : '' %>>Fridge</option>
+          <option value="Freezer"        <%= truck.assetType === 'Freezer'         ? 'selected' : '' %>>Freezer</option>
+          <option value="Freezer Room"   <%= truck.assetType === 'Freezer Room'    ? 'selected' : '' %>>Freezer Room</option>
+          <option value="Walk-In Fridge" <%= truck.assetType === 'Walk-In Fridge'  ? 'selected' : '' %>>Walk-In Fridge</option>
+          <option value="Walk-In Freezer"<%= truck.assetType === 'Walk-In Freezer' ? 'selected' : '' %>>Walk-In Freezer</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:160px;">
+        <label style="display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Temperature Type</label>
+        <select name="temperatureType" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;">
+          <option value="chiller" <%= truck.temperatureType === 'chiller' ? 'selected' : '' %>>Chiller<% if (wsThresholds.chiller && (wsThresholds.chiller.min != null || wsThresholds.chiller.max != null)) { %> (<%= wsThresholds.chiller.min ?? '—' %>°C to <%= wsThresholds.chiller.max ?? '—' %>°C)<% } %></option>
+          <option value="freezer" <%= truck.temperatureType === 'freezer' ? 'selected' : '' %>>Freezer<% if (wsThresholds.freezer && (wsThresholds.freezer.min != null || wsThresholds.freezer.max != null)) { %> (<%= wsThresholds.freezer.min ?? '—' %>°C to <%= wsThresholds.freezer.max ?? '—' %>°C)<% } %></option>
+          <option value="cabin"   <%= truck.temperatureType === 'cabin'   ? 'selected' : '' %>>Cabin / Ambient</option>
+        </select>
+      </div>
+      <button type="submit" style="background:var(--blue);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;height:40px;">Save Changes</button>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<!-- Compliance History -->
+<div class="archive-section">
+  <div class="archive-header-row">
+    <div>
+      <h2 class="archive-main-title">Compliance History</h2>
+      <div class="archive-subtitle">Temperature records grouped by compliance week</div>
+    </div>
+    <input type="date" id="archiveDate" class="archive-date-input" title="Jump to date">
+  </div>
+
+  <%
+    const weeks = Object.keys(weeklyGroups).sort().reverse();
+    const _signOffDay = typeof signOffDay !== 'undefined' ? signOffDay : 5;
+  %>
+  <% if (weeks.length === 0) { %>
+    <div class="history-empty"><p>No compliance records found for this asset.</p></div>
+  <% } %>
+
+  <div class="archive-accordion" id="historyAccordion">
+  <%
+    weeks.forEach((monday, wIndex) => {
+      const mon = new Date(monday);
+      const weekEnd = new Date(monday);
+      const daysFromMon = _signOffDay === 0 ? 6 : _signOffDay - 1;
+      weekEnd.setDate(mon.getDate() + daysFromMon);
+      const signOffLog = weeklyGroups[monday].find(l => {
+        const [y, m, d] = l.date.split("-").map(Number);
+        return new Date(y, m - 1, d).getDay() === _signOffDay;
+      });
+      const weekNote = signOffLog?.comments || "";
+  %>
+    <div class="week-group">
+      <button
+        class="accordion-trigger week-trigger <%= (signOffLog && signOffLog.shift_done && signOffLog.signature && !signOffLog.admin_signature) ? 'has-alert' : '' %>"
+        onclick="toggleAccordion('week-<%= wIndex %>')">
+        <% if (signOffLog && signOffLog.shift_done && signOffLog.signature && !signOffLog.admin_signature) { %>
+          <span class="week-alert-dot" title="Admin sign-off required"></span>
+        <% } %>
+        <span class="week-label">
+          Week: <%= mon.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) %> –
+          <%= weekEnd.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) %>
+        </span>
+        <span class="week-actions">
+          <a href="/app/assets/<%= truck.id %>/sheet?date=<%= monday %>"
+             onclick="event.stopPropagation()" class="week-doc" title="Open temperature sheet">📄</a>
+          <span class="chevron">▼</span>
+        </span>
+      </button>
+
+      <div id="week-<%= wIndex %>" class="accordion-content week-content">
+        <% if (user && user.role === "admin" && signOffLog && signOffLog.shift_done && signOffLog.signature && !signOffLog.admin_signature) { %>
+        <div class="week-note-box admin-signoff" style="border-left:4px solid #ff3b3b">
+          <strong>🔴 Please view Weekly Temp Sheet then Sign Below</strong>
+          <canvas class="admin-sig-canvas" data-index="<%= wIndex %>" id="admin-sig-<%= wIndex %>"
+            style="background:#fff;border:2px dashed #555;margin-top:8px;"></canvas>
+          <form method="POST" action="/app/assets/<%= truck.id %>/admin-sign" onsubmit="prepareAdminSig(<%= wIndex %>)">
+            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="monday" value="<%= monday %>">
+            <input type="hidden" name="signature" id="admin-sig-input-<%= wIndex %>">
+            <button class="save-note-btn">Sign & Verify</button>
+          </form>
+        </div>
+        <% } %>
+
+        <div class="week-note-box">
+          <form method="POST" action="/app/assets/<%= truck.id %>/week-note" onsubmit="event.stopPropagation()">
+            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="monday" value="<%= monday %>">
+            <textarea name="comments" rows="2" placeholder="Add note for Temp Sheet."><%= weekNote %></textarea>
+            <button class="save-note-btn">Save Note</button>
+          </form>
+        </div>
+
+        <% weeklyGroups[monday].forEach((log, dIndex) => { %>
+        <div class="day-group" data-date="<%= log.date %>">
+          <button class="accordion-trigger day-trigger" onclick="toggleAccordion('day-<%= wIndex %>-<%= dIndex %>')">
+            <span><%= new Date(log.date).toLocaleDateString('en-AU',{weekday:'long'}) %></span>
+            <span>👤 <%= dayLabels[log.date] || '—' %></span>
+          </button>
+          <div id="day-<%= wIndex %>-<%= dIndex %>" class="accordion-content day-content">
+            <div class="temp-row">
+              <% (log.temps || []).forEach((t, i, arr) => {
+                   const first = i === 0;
+                   const last  = i === arr.length - 1;
+              %>
+              <div class="temp-chip <%= first ? 'start' : last ? 'end' : '' %>">
+                <div class="temp-time"><%= new Date(t.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) %></div>
+                <% if (first) { %>
+                  <div class="temp-multi-grid">
+                    <div class="temp-col"><div class="temp-label">Dispatch</div><div class="temp-value"><%= t.dispatch ?? '—' %>°C</div></div>
+                    <div class="temp-col"><div class="temp-label">Chiller</div><div class="temp-value"><%= t.chiller ?? '—' %>°C</div></div>
+                    <div class="temp-col"><div class="temp-label">Freezer</div><div class="temp-value"><%= t.freezer ?? '—' %>°C</div></div>
+                  </div>
+                <% } else { %>
+                  <div class="temp-label"><%= last ? 'End of shift' : 'Cabin' %></div>
+                  <div class="temp-value"><%= t.cabin ?? '—' %>°C</div>
+                <% } %>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+  </div>
+</div>
+
+<script>
+function toggleAccordion(id) {
+  const el = document.getElementById(id);
+  const trigger = el.previousElementSibling;
+  el.classList.toggle('open');
+  if (trigger) trigger.classList.toggle('active');
+  if (el.classList.contains('open')) {
+    const index = id.split('-')[1];
+    initAdminSignatureByIndex(index);
+  }
+}
+
+const AVAILABLE_DATES = <%- JSON.stringify(
+  Object.values(weeklyGroups).flat().map(l => l.date)
+) %>;
+
+const dateInput = document.getElementById('archiveDate');
+if (dateInput) {
+  dateInput.value = new Date().toISOString().split('T')[0];
+  dateInput.addEventListener('change', () => {
+    const date = dateInput.value;
+    if (!AVAILABLE_DATES.includes(date)) {
+      const accordion = document.getElementById('historyAccordion');
+      if (accordion) {
+        const existing = document.getElementById('vNoResultMsg');
+        if (existing) existing.remove();
+        accordion.insertAdjacentHTML('beforebegin', '<div id="vNoResultMsg" style="background:var(--bg2);border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text-muted);font-size:14px;margin-bottom:12px;">No results for this date.</div>');
+        setTimeout(() => { const el = document.getElementById('vNoResultMsg'); if (el) el.remove(); }, 2500);
+      }
+      dateInput.value = '';
+      return;
+    }
+    document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
+    const day = document.querySelector(`[data-date="${date}"]`);
+    if (!day) return;
+    day.closest('.week-group').querySelector('.week-content').classList.add('open');
+    day.querySelector('.day-content').classList.add('open');
+    day.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function prepareAdminSig(index) {
+  const canvas = document.getElementById(`admin-sig-${index}`);
+  const input = document.getElementById(`admin-sig-input-${index}`);
+  if (canvas && input) input.value = canvas.toDataURL();
+}
+
+const adminCanvases = {};
+function initAdminSignatureByIndex(index) {
+  if (adminCanvases[index]) return;
+  const canvas = document.getElementById(`admin-sig-${index}`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let drawing = false;
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 120;
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.lineCap = "round";
+  }
+  resize();
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left,
+             y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top };
+  }
+  const start = e => { drawing = true; ctx.beginPath(); const p = pos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+  const draw  = e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); };
+  const end   = () => drawing = false;
+  canvas.addEventListener("mousedown", start); canvas.addEventListener("mousemove", draw); window.addEventListener("mouseup", end);
+  canvas.addEventListener("touchstart", start, {passive:false}); canvas.addEventListener("touchmove", draw, {passive:false}); canvas.addEventListener("touchend", end);
+  adminCanvases[index] = true;
+}
+
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() { document.getElementById('hamburgerDropdown').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('hamburgerDropdown').classList.remove('open');
+});
+</script>
+</body>
+</html>

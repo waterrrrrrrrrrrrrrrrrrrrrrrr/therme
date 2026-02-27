@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Assets — <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body id="appBody">
+
+<%- include('partials/header', { activeNav: 'assets' }) %>
+
+<div class="vehicles-topbar">
+  <a href="/app" class="topbar-btn back-btn">← Back</a>
+  <div class="vehicles-title">
+    <h1>Assets <span class="muted" style="font-size:1.1rem;">(<%= vehicleCount %>)</span></h1>
+    <p class="page-subtitle">Fleet &amp; Equipment Management</p>
+  </div>
+  <div class="vehicles-actions">
+    <input type="text" id="vehicleSearch" placeholder="Search assets…" class="vehicle-search">
+    <% if (user.role === 'admin') { %>
+    <button class="topbar-btn add-btn" onclick="openAddVehicle()">+ Add Asset</button>
+    <% } %>
+  </div>
+</div>
+
+<% if (typeof successMsg !== 'undefined' && successMsg) { %>
+  <div class="section" style="padding-bottom:0;"><div class="alert alert-success"><%= successMsg %></div></div>
+<% } %>
+<% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+  <div class="section" style="padding-bottom:0;"><div class="alert alert-error"><%= errorMsg %></div></div>
+<% } %>
+
+<div class="vehicle-grid">
+  <% vehicles.forEach(v => {
+    const assetIcons = {
+      'Vehicle': '🚚', 'Fridge': '❄️', 'Freezer': '🧊', 'Freezer Room': '🏭',
+      'Walk-In Fridge': '🚪', 'Walk-In Freezer': '🧊',
+      'C_TRUCK': '🚚', 'C_VAN': '🚐', 'MR': '🚛', 'HR': '🚜'
+    };
+    const icon = assetIcons[v.assetType] || assetIcons[v.class] || '🚚';
+  %>
+  <div class="list-card <%= v.deactivated ? 'deactivated' : '' %>" data-rego="<%= v.rego.toLowerCase() %>">
+    <a href="/app/assets/<%= v.id %>" style="color:inherit;text-decoration:none;">
+      <h3 style="margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span class="asset-type-icon"><%= icon %></span>
+          <span style="font-weight:700;font-size:15px;"><%= v.rego %></span>
+        </span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <%
+            // Service status indicators
+            const today = new Date().toISOString().split('T')[0];
+            const serviceRecords = v.serviceRecords || [];
+            const oneWeek = new Date(); oneWeek.setDate(oneWeek.getDate() + 7);
+            const oneWeekStr = oneWeek.toISOString().split('T')[0];
+            const oneMonth = new Date(); oneMonth.setDate(oneMonth.getDate() + 30);
+            const oneMonthStr = oneMonth.toISOString().split('T')[0];
+            const serviceDueWeek = serviceRecords.some(r => r.dueDate && r.dueDate >= today && r.dueDate <= oneWeekStr);
+            const serviceDueMonth = !serviceDueWeek && serviceRecords.some(r => r.dueDate && r.dueDate >= today && r.dueDate <= oneMonthStr);
+          %>
+          <% if (serviceDueWeek) { %>
+            <span class="live-pill danger" title="Service due within 7 days">
+              <span class="live-dot red"></span>
+              Service Due
+            </span>
+          <% } else if (serviceDueMonth) { %>
+            <span class="live-pill warning" title="Service due within 30 days">
+              <span class="live-dot yellow"></span>
+              Service Soon
+            </span>
+          <% } %>
+          <% if (v.isLive && v.live) { %>
+            <span class="driver-avatar" title="Driver: <%= v.live.driverName %>">
+              <%= v.live.driverName.split(' ').map(n => n[0]).join('').toUpperCase() %>
+            </span>
+            <span class="live-pill" title="<%= v.live.minutesAgo %> mins ago">
+              <span class="live-dot live"></span>
+              <%= v.live.temp %>°C @ <%= v.live.perthTime %>
+            </span>
+          <% } %>
+          <% if (v.requiresSignOff) { %>
+            <span class="live-pill danger">
+              <span class="live-dot red"></span>
+              Sign-off needed
+            </span>
+          <% } %>
+          <% if (v.deactivated) { %>
+            <span class="live-pill warning">Inactive</span>
+          <% } %>
+        </div>
+      </h3>
+    </a>
+
+    <div class="stat-row">
+      <span class="stat-label">Type</span>
+      <span class="stat-value"><%= v.assetType || v.class || '—' %></span>
+    </div>
+    <% if (v.temperatureType) { %>
+    <div class="stat-row">
+      <span class="stat-label">Temp Type</span>
+      <span class="stat-value"><%= v.temperatureType %></span>
+    </div>
+    <% } %>
+    <div class="stat-row">
+      <span class="stat-label">Total shifts</span>
+      <span class="stat-value"><%= v.stats.totalShifts %></span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Missed checklists</span>
+      <span class="stat-value <%= v.stats.missedChecklists > 0 ? 'bad' : 'good' %>">
+        <%= v.stats.missedChecklists %>
+      </span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Last active</span>
+      <span class="stat-value"><%= v.stats.lastActiveDate ?? '—' %></span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Avg temp</span>
+      <span class="stat-value"><%= v.stats.averageTemp ?? '—' %><% if (v.stats.averageTemp !== null && v.stats.averageTemp !== undefined) { %>°C<% } %></span>
+    </div>
+
+    <% if (user.role === 'admin') { %>
+    <div class="vehicle-actions">
+      <% if (v.deactivated) { %>
+        <form action="/app/assets/reactivate/<%= v.id %>" method="POST" style="flex:1;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <button class="btn success" style="width:100%;">Reactivate</button>
+        </form>
+      <% } else { %>
+        <form action="/app/assets/deactivate/<%= v.id %>" method="POST" style="flex:1;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <button class="btn danger" style="width:100%;">Deactivate</button>
+        </form>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+  <% }) %>
+</div>
+
+<!-- ADD ASSET MODAL -->
+<div id="addVehicleModal" class="modal-overlay">
+  <div class="modal">
+    <h2>Add New Asset</h2>
+    <form action="/app/assets/add" method="POST">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <div class="form-group">
+        <label>Asset Name / Rego</label>
+        <input name="rego" placeholder="e.g. ABC123, Fridge-01" required>
+      </div>
+
+      <div class="form-group">
+        <label>Asset Type</label>
+        <select name="assetType" id="assetTypeSelect" onchange="handleAssetTypeChange(this.value)" required>
+          <option value="" disabled selected hidden>Select asset type</option>
+          <option value="Vehicle">Vehicle (Truck)</option>
+          <option value="Fridge">Fridge</option>
+          <option value="Freezer">Freezer</option>
+          <option value="Freezer Room">Freezer Room</option>
+          <option value="Walk-In Fridge">Walk-In Fridge</option>
+          <option value="Walk-In Freezer">Walk-In Freezer</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="vehicleClassRow" style="display:none;">
+        <label>Vehicle Class</label>
+        <select name="class">
+          <option value="C_TRUCK">C Class (Truck)</option>
+          <option value="C_VAN">C Class (Van)</option>
+          <option value="MR">MR (Medium Rigid)</option>
+          <option value="HR">HR (Heavy Rigid)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;">
+          Temperature Type
+          <span class="tooltip-wrap">
+            <span class="tooltip-icon">ⓘ</span>
+            <span class="tooltip-box" style="min-width:270px;max-width:320px;">
+              <strong>Chiller</strong><% if (wsThresholds.chiller && (wsThresholds.chiller.min != null || wsThresholds.chiller.max != null)) { %> (<%= wsThresholds.chiller.min ?? '—' %>°C to <%= wsThresholds.chiller.max ?? '—' %>°C)<% } %> — Fresh food &amp; dairy storage.<br><br>
+              <strong>Freezer</strong><% if (wsThresholds.freezer && (wsThresholds.freezer.min != null || wsThresholds.freezer.max != null)) { %> (<%= wsThresholds.freezer.min ?? '—' %>°C to <%= wsThresholds.freezer.max ?? '—' %>°C)<% } %> — Frozen goods storage.<br><br>
+              <strong>Cabin / Ambient</strong> — Ambient cabin temperature (trucks).<br><br>
+              <span style="color:#9ca3af;font-size:10px;">Thresholds shown are from Workspace Settings. Temperatures outside these ranges are recorded as exceptions.</span>
+            </span>
+          </span>
+        </label>
+        <select name="temperatureType" id="temperatureTypeSelect">
+          <option value="chiller">Chiller<% if (wsThresholds.chiller && (wsThresholds.chiller.min != null || wsThresholds.chiller.max != null)) { %> (<%= wsThresholds.chiller.min ?? '—' %>°C to <%= wsThresholds.chiller.max ?? '—' %>°C)<% } %></option>
+          <option value="freezer">Freezer<% if (wsThresholds.freezer && (wsThresholds.freezer.min != null || wsThresholds.freezer.max != null)) { %> (<%= wsThresholds.freezer.min ?? '—' %>°C to <%= wsThresholds.freezer.max ?? '—' %>°C)<% } %></option>
+          <option value="cabin">Cabin / Ambient (Truck)</option>
+        </select>
+      </div>
+
+      <button class="btn" type="submit">Add Asset</button>
+      <button type="button" class="btn-secondary" onclick="closeAddVehicle()" style="width:100%;margin-top:8px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div class="app-footer">
+  Logged in as <strong><%= user.role.toUpperCase() %></strong> &bull; <a href="/logout">Logout</a>
+</div>
+
+<script>
+// ── Dark mode ─────────────────────────────────────────────────
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+// ── Hamburger ─────────────────────────────────────────────────
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+// ── Modal ─────────────────────────────────────────────────────
+function openAddVehicle() {
+  document.getElementById('addVehicleModal').style.display = 'flex';
+}
+function closeAddVehicle() {
+  document.getElementById('addVehicleModal').style.display = 'none';
+}
+
+// Auto-select temperature type based on asset type
+function handleAssetTypeChange(value) {
+  const classRow = document.getElementById('vehicleClassRow');
+  const tempTypeSelect = document.getElementById('temperatureTypeSelect');
+
+  classRow.style.display = value === 'Vehicle' ? 'block' : 'none';
+
+  // Auto-select temp type
+  const autoMap = {
+    'Vehicle': 'cabin',
+    'Fridge': 'chiller',
+    'Walk-In Fridge': 'chiller',
+    'Freezer': 'freezer',
+    'Walk-In Freezer': 'freezer',
+    'Freezer Room': 'freezer'
+  };
+  if (tempTypeSelect && autoMap[value]) {
+    tempTypeSelect.value = autoMap[value];
+  }
+}
+
+// ── Search ────────────────────────────────────────────────────
+const searchInput = document.getElementById('vehicleSearch');
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    document.querySelectorAll('.list-card').forEach(card => {
+      const text = (card.dataset.rego || '') + card.textContent.toLowerCase();
+      card.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+}
+</script>
+</body>
+</html>

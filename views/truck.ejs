@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Truck <%= truck.id %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+
+  <style>
+body {
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+    
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+    .box {
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #333;
+    }
+
+    h2 { margin-top: 0; font-size: 1.3rem; }
+
+    .temp-log {
+      background: #333;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 14px;
+      border-left: 4px solid #00e676;
+    }
+
+    input, button {
+      width: 100%;
+      height: 52px;
+      padding: 0 14px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input {
+      background: #333;
+      color: white;
+      border: 1px solid #444;
+    }
+
+    button {
+      background: #00e676;
+      color: #111;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #ff3b3b;
+      color: white;
+    }
+
+    .question-box {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .question-text {
+      font-size: 1.1em;
+      margin-bottom: 18px;
+      min-height: 3em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-no, .btn-yes {
+      flex: 1;
+      padding: 15px;
+      font-size: 1.8em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-no { background: #ff3b3b; }
+    .btn-yes { background: #2ecc71; }
+
+#sig-canvas {
+  width: 180px;
+  height: 30px;
+  border: 2px dashed #555;
+  border-radius: 6px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none !important;
+  margin-top: 10px;
+}
+.mobile-wrap {
+  max-width: 450px;
+  margin: auto;
+  padding: 40px 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .mobile-wrap {
+    padding-top: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .box {
+    border-radius: 14px;
+  }
+
+  .question-text {
+    padding: 0 6px;
+  }
+}
+    .friday-box {
+      background: #1a1a1c;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border: 1px solid #444;
+    }
+
+    .sig-label {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    #backBtn {
+  margin-top: 16px;
+}
+    @media (max-width: 600px) {
+  #backBtn {
+    position: sticky;
+    bottom: 12px;
+    z-index: 50;
+    margin-top: 16px;
+    background: #444;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+  }
+}
+  </style>
+<style>
+/* Service records & notes layout fix (item 26) */
+.asset-layout-grid { display:flex;flex-direction:column;gap:24px; }
+/* Layout: QR → Notes → Driver Breakdown → Service Records → Edit → Compliance */
+.asset-section-qr         { order: 1; }
+.asset-section-notes      { order: 2; }
+.asset-section-driver     { order: 3; }
+.asset-section-service    { order: 4; }
+.asset-section-edit       { order: 5; }
+.asset-section-compliance { order: 6; }
+</style>
+</head>
+<body class="page">
+  <div class="mobile-wrap">
+
+  <div class="page-header">
+    <h1>🚚 <%= truck.rego %></h1>
+<div class="subtitle" style="color:#888;">
+Date: <%= new Date().toLocaleDateString('en-AU', {
+  timeZone: timezone || 'Australia/Perth',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+}) %>
+</div>  </div>
+
+  <% if (!log.checklist_done) { %>
+    <div class="box">
+      <h2>🧾 Pre-Start Checklist</h2>
+      <form method="POST" action="/app/truck/<%= truck.id %>/checklist" id="checklistForm">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <% checklistQuestions.forEach((q, i) => { %>
+        <input type="hidden" name="q<%= i+1 %>" id="q<%= i+1 %>">
+        <% }) %>
+
+        <div id="questionBox" class="question-box">
+          <div id="questionText" class="question-text"></div>
+          <div class="btn-row">
+            <button type="button" class="btn-no" onclick="answer(false)">✘</button>
+            <button type="button" class="btn-yes" onclick="answer(true)">✔</button>
+          </div>
+        </div>
+
+        <button id="submitBtn" type="button" style="display:none;" onclick="confirmChecklist()">Submit Checklist</button>
+      </form>
+      <button
+  id="backBtn"
+  type="button"
+  style="display:none; background:#444; color:white;"
+  onclick="goBack()"
+>
+  ⬅ Back
+</button>
+
+    </div>
+
+  <% } else if (!log.shift_done) { %>
+    <div class="box">
+<div class="box">
+  <h2>🌡️ Temperature Log</h2>
+
+  <% if (log.temps.length > 0) { %>
+    <div style="margin-bottom: 15px;">
+      <h3 style="font-size: 0.9rem; color: #888; text-transform: uppercase;">Edit Previous Entries</h3>
+      <% log.temps.forEach((t, index) => { %>
+        <form method="POST" action="/app/truck/<%= truck.id %>/temps/edit/<%= index %>" class="temp-log" style="border-left: 4px solid #ffb300; margin-bottom: 10px;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 12px;"><%= new Date(t.time).toLocaleTimeString('en-AU', {
+  timeZone: timezone || 'Australia/Perth',
+  hour: '2-digit',
+  minute: '2-digit'
+}) %></strong>
+<button
+  type="button"
+  class="edit-toggle-btn"
+  style="width: auto; height: 28px; padding: 0 10px; margin: 0; font-size: 11px; background: #444; color: white;"
+  onclick="enableEdit(event, this)"
+>
+  Edit
+</button>          </div>
+
+          <% if (t.type === "start") { %>
+<div class="temp-edit-grid">
+  <div class="temp-row">
+    <span class="temp-label">Dispatch:</span>
+    <input name="dispatch" value="<%= t.dispatch %>" type="number" step="0.1" class="edit-input" disabled>
+    <span class="temp-unit">°C</span>
+  </div>
+
+  <div class="temp-row">
+    <span class="temp-label">Chiller:</span>
+    <input name="chiller" value="<%= t.chiller %>" type="number" step="0.1" class="edit-input" disabled>
+    <span class="temp-unit">°C</span>
+  </div>
+
+  <div class="temp-row">
+    <span class="temp-label">Freezer:</span>
+    <input name="freezer" value="<%= t.freezer %>" type="number" step="0.1" class="edit-input" disabled>
+    <span class="temp-unit">°C</span>
+  </div>
+</div>
+
+          <% } else { %>
+<div class="temp-row">
+  <span class="temp-label">Cabin:</span>
+  <input name="cabin" value="<%= t.cabin %>" type="number" step="0.1" class="edit-input" disabled>
+  <span class="temp-unit">°C</span>
+</div>          <% } %>
+        </form>
+      <% }) %>
+    </div>
+    <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+  <% } %>
+
+  <h3>New Entry</h3>
+  <% if (log.temps.length === 0) { %>
+    <form method="POST" action="/app/truck/<%= truck.id %>/temps">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input name="dispatch" type="number" step="0.1" placeholder="Truck Dispatch Temp (°C)" required>
+      <input name="chiller" type="number" step="0.1" placeholder="Warehouse Chiller Temp (°C)" required>
+      <input name="freezer" type="number" step="0.1" placeholder="Warehouse Freezer Temp (°C)" required>
+      <button type="submit">Start Shift</button>
+    </form>
+  <% } else { %>
+    <form method="POST" action="/app/truck/<%= truck.id %>/temps">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input name="cabin" type="number" step="0.1" placeholder="Cabin Temp (°C)" required>
+      <button type="submit">Log Cabin Temp</button>
+    </form>
+  <% } %>
+</div>
+
+<style>
+  .edit-input {
+    height: 35px !important;
+    margin-top: 0 !important;
+    font-size: 13px !important;
+    background: #222 !important;
+    text-align: center;
+  }
+  .temp-edit-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.temp-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.temp-label {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.temp-unit {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.edit-input:disabled {
+  background: transparent !important;
+  border: none !important;
+  color: #ddd;
+  font-weight: 600;
+  text-align: left;
+  pointer-events: none;
+}
+
+.edit-input:not(:disabled) {
+  background: #2a2a2a !important;
+  border: 1px solid #555 !important;
+  color: white;
+}
+</style>
+
+    <div class="box" style="border-top: 2px solid #ff3b3b;">
+      <button id="showEndShift" class="danger" type="button" onclick="showEndShiftForm()">End Shift</button>
+      <form id="endShiftForm" method="POST" action="/app/truck/<%= truck.id %>/end-shift" style="display:none;" onsubmit="prepareSignature()">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input name="cabin" type="number" step="0.1" placeholder="Final Cabin Temp (°C)" required class="temp-input">
+
+<% if (isSignoffDay) { %>
+          <div class="friday-box">
+            <h3 style="color: #00e676; margin-top: 0;">📅 Week-End Requirements</h3>
+            <% if (requireOdometer) { %>
+            <input type="number" name="odometer" placeholder="Final Odometer Reading" <% if (requireOdometer) { %>required<% } %> class="temp-input">
+            <% } %>
+            <% if (requireSignature) { %>
+            <span class="sig-label">Please Sign Below:</span>
+            <canvas id="sig-canvas"></canvas>
+            <input type="hidden" name="signature" id="sig-input">
+            <button type="button" style="background:#444; height: 35px; font-size: 12px; color:white;" onclick="clearSig()">Clear Signature</button>
+            <% } %>
+          </div>
+        <% } %>
+        <button class="danger">Confirm End Shift</button>
+      </form>
+    </div>
+
+  <% } else { %>
+    <div class="box" style="border:1px solid #00e676;background:linear-gradient(135deg,rgba(0,230,118,0.08),rgba(0,230,118,0.02));">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="margin:0;">✅ Shift Complete</h2>
+        <span style="font-size:28px;">🎉</span>
+      </div>
+      <p style="color:#aaa;font-size:14px;margin:0 0 16px;">Your shift has been successfully recorded. Safe travels!</p>
+      <% log.temps.forEach(t => { %>
+        <div class="temp-log">
+          <% const parsed = new Date(t.time); %>
+          <strong><%= parsed.toLocaleTimeString('en-AU', { timeZone: timezone || 'Australia/Perth', hour:'2-digit', minute:'2-digit' }) %></strong><br>
+          <% if (t.type === "start") { %>
+            Dispatch: <%= t.dispatch %>°C | Chiller: <%= t.chiller %>°C | Freezer: <%= t.freezer %>°C
+          <% } else { %>
+            Cabin: <%= t.cabin %>°C
+          <% } %>
+        </div>
+      <% }) %>
+      <a href="/app" style="display:block;width:100%;height:52px;margin-top:16px;border-radius:6px;background:#00e676;color:#111;text-align:center;line-height:52px;text-decoration:none;font-weight:700;font-size:16px;">Return to Workspace Home</a>
+    </div>
+  <% } %>
+
+  <script>
+    const questions = <%- JSON.stringify(checklistQuestions) %>;
+    let current = 0;
+    const questionText = document.getElementById("questionText");
+    const submitBtn = document.getElementById("submitBtn");
+    const backBtn = document.getElementById("backBtn");
+    const questionBox = document.getElementById("questionBox");
+
+    function showQuestion() {
+      if (questionText) questionText.innerText = questions[current];
+    }
+   function answer(value) {
+  const input = document.getElementById("q" + (current + 1));
+  if (!input) return;
+
+  input.value = value ? "yes" : "no";
+  current++;
+
+  if (current >= questions.length) {
+    questionBox.style.display = "none";
+    submitBtn.style.display = "block";
+    backBtn.style.display = "block";
+  } else {
+    showQuestion();
+    if (current > 0) {
+      backBtn.style.display = "block";
+    }
+  }
+
+  setTimeout(() => {
+    backBtn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, 50);
+}
+    function goBack() {
+      if (current === 0) return;
+      current--;
+      document.getElementById("q" + (current + 1)).value = "";
+      questionBox.style.display = "block";
+      submitBtn.style.display = "none";
+      if(current === 0) backBtn.style.display = "none";
+      showQuestion();
+    }
+    showQuestion();
+
+    function showEndShiftForm() {
+      document.getElementById('showEndShift').style.display = 'none';
+      document.getElementById('endShiftForm').style.display = 'block';
+      if (typeof resizeCanvas === 'function') setTimeout(resizeCanvas, 50);
+    }
+
+    function confirmChecklist() {
+      document.getElementById('checklistForm').submit();
+    }
+
+    // Signature Logic
+    const canvas = document.getElementById('sig-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      window.resizeCanvas = function() {
+        if (canvas.offsetWidth > 0) {
+canvas.width = 180;
+canvas.height = 30;
+
+ctx.strokeStyle = "#000";
+ctx.lineWidth = 2;
+ctx.lineCap = "round";
+
+        }
+      };
+      window.addEventListener('resize', resizeCanvas);
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+      const startDraw = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+      const doDraw = (e) => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+      const endDraw = () => { drawing = false; };
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', doDraw);
+      window.addEventListener('mouseup', endDraw);
+      canvas.addEventListener('touchstart', (e) => { startDraw(e); e.preventDefault(); }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => { doDraw(e); e.preventDefault(); }, { passive: false });
+      canvas.addEventListener('touchend', endDraw);
+      window.clearSig = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.prepareSignature = () => { document.getElementById('sig-input').value = canvas.toDataURL(); };
+    }
+  </script>
+  <script>
+    function enableEdit(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const form = btn.closest('form');
+  const inputs = form.querySelectorAll('.edit-input');
+
+  inputs.forEach(input => {
+    input.disabled = false;
+  });
+
+  btn.textContent = "Update";
+
+  btn.onclick = function () {
+    form.submit();
+  };
+}
+  </script>
+  </div> <!-- mobile-wrap -->
+</body>
+</html>

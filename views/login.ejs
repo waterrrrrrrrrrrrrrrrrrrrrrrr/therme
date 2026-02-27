@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= typeof appName !== "undefined" ? appName : "Thermio" %> — Login</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+
+<body class="page">
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <a href="/" class="app-header-link">
+      
+      <div class="app-title"><%= typeof appName !== "undefined" ? appName : "Thermio" %></div>
+    </a>
+  </div>
+</header>
+
+<main class="split-login-wrapper">
+
+  <!-- LEFT: LOGIN -->
+  <section class="login-side">
+    <div class="login-card <%= error ? 'shake' : '' %>">
+      <div class="page-header">
+        <h1>Login</h1>
+        <div class="subtitle">Staff & Admin access</div>
+      </div>
+
+      <% if (error) { %>
+        <div class="login-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <label>PIN</label>
+        <div class="pin-wrapper">
+          <input
+            type="password"
+            name="pin"
+            id="pinInput"
+            placeholder="Enter your PIN"
+            required
+            autofocus
+          />
+          <button type="button" class="pin-toggle" id="togglePin">👁️</button>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+      
+    </div>
+    
+  </section>
+
+  <!-- RIGHT: PHOTO -->
+<section class="photo-side">
+  <div class="photo-container">
+    <div class="photo-layer border-blue"></div>
+    <div class="photo-layer border-yellow"></div>
+  </div>
+</section>
+</main>
+
+<style>
+  body.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* Layout */
+.split-login-wrapper {
+  display: flex;
+  flex: 1;              /* 👈 THIS is the magic */
+  background-color: #121418;
+  overflow: hidden;
+}
+
+/* Login side */
+.login-side {
+  flex: 1.2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Login card */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: #1c1f26;
+  border: 1px solid #2d333d;
+  border-left: 5px solid #0e4773;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  padding: 28px;
+  border-radius: 16px;
+}
+.photo-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* Photo side container */
+.photo-side {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.photo-layer {
+  position: absolute;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* This creates the curve on the left side */
+  clip-path: ellipse(90% 100% at 100% 50%);
+}
+
+/* OUTER BLUE LAYER */
+.border-blue {
+  background: #0e4773;
+  z-index: 1;
+}
+
+/* INNER YELLOW LAYER (Shifted slightly right and shrunk) */
+.border-yellow {
+  background: #fcca0c;
+  z-index: 2;
+  /* Adjusting scale/inset to create the "border" effect */
+  width: calc(100% - 10px);
+  height: calc(100% - 20px);
+  top: 10px;
+  left: 10px;
+}
+
+/* THE ACTUAL IMAGE */
+.main-photo {
+  z-index: 3;
+  object-fit: cover;
+  /* Further shrunk to show the yellow border */
+  width: calc(100% - 22px); 
+  height: calc(100% - 32px);
+  top: 16px;
+  left: 16px;
+}
+.photo-clip {
+  width: 100%;
+  height: 100%;
+  padding-left: 14px;              /* SPACE FOR LEFT BORDER */
+  clip-path: ellipse(90% 100% at 100% 50%);
+}
+/* OUTER YELLOW BORDER */
+.photo-border-outer {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  background: #0e4773;
+  box-shadow: -8px 0 20px rgba(0,0,0,0.35);
+}
+
+/* INNER BLUE BORDER */
+.photo-border-inner {
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  background: #fcca0c;
+}
+
+/* PHOTO */
+.full-page-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Mobile */
+@media (max-width: 850px) {
+  .photo-side {
+    display: none;
+  }
+  .login-side {
+    flex: 1;
+  }
+}
+</style>
+
+<script>
+const pinInput = document.getElementById("pinInput");
+const togglePin = document.getElementById("togglePin");
+
+togglePin.addEventListener("click", () => {
+  const isHidden = pinInput.type === "password";
+  pinInput.type = isHidden ? "text" : "password";
+  togglePin.textContent = isHidden ? "🙈" : "👁️";
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Dashboard — <%= appName %></title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .sa-header{background:#12151b;border-bottom:1px solid #2d3748;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+    .sa-nav{display:flex;align-items:center;gap:20px;}
+    .sa-nav a{color:#9ca3af;text-decoration:none;font-size:14px;}
+    .sa-nav a:hover{color:#fff;}
+    .sa-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .sa-user{display:flex;align-items:center;gap:10px;}
+    .sa-user-label{color:#9ca3af;font-size:13px;}
+    .sa-user-name{color:#fff;font-weight:600;}
+    .container{max-width:1200px;margin:0 auto;padding:32px 24px;}
+    h1{font-size:26px;font-weight:700;margin:0 0 4px;}
+    .subtitle{color:#9ca3af;font-size:14px;margin:0 0 28px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .btn-new{background:linear-gradient(180deg,#7c3aed,#6d28d9);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
+    .ws-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}
+    .ws-card{background:linear-gradient(180deg,#1f2328,#181b20);border-radius:14px;padding:20px;border-left:4px solid #7c3aed;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:transform .2s;}
+    .ws-card:hover{transform:translateY(-2px);}
+    .ws-card.suspended{border-left-color:#ef4444;opacity:.75;}
+    .ws-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .ws-name{font-size:16px;font-weight:700;}
+    .ws-slug{font-size:12px;color:#6b7280;margin-top:2px;}
+    .status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .status-active{background:#0523;color:#4ade80;border:1px solid #166534;}
+    .status-suspended{background:#1f0a0a;color:#f87171;border:1px solid #7f1d1d;}
+    .ws-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+    .ws-stat{text-align:center;background:#0f1115;border-radius:8px;padding:10px 6px;}
+    .ws-stat-val{font-size:18px;font-weight:700;color:#fff;}
+    .ws-stat-lbl{font-size:10px;color:#6b7280;margin-top:2px;}
+    .ws-footer{display:flex;gap:8px;margin-top:12px;}
+    .ws-footer a{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;}
+    .btn-detail{background:#1c1f26;color:#d1d5db;border:1px solid #2d3748;}
+    .btn-detail:hover{background:#2d3748;}
+    .last-activity{font-size:11px;color:#4b5563;margin-top:8px;}
+  </style>
+</head>
+<body>
+<div class="sa-header">
+  <span style="font-size:18px;font-weight:700;color:#fff"><%= appName %></span>
+  <div class="sa-nav">
+    <a href="/portal/stats">Stats</a>
+    <a href="/portal/logout">Logout</a>
+    <div class="sa-user">
+      <div class="sa-user-label">Logged in as</div>
+      <div class="sa-avatar"><%= (user.username || 'S').charAt(0).toUpperCase() %></div>
+      <div class="sa-user-name"><%= user.username %></div>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="topbar">
+    <div>
+      <h1>Portal Dashboard</h1>
+      <p class="subtitle"><%= workspaces.length %> workspace<%= workspaces.length !== 1 ? 's' : '' %> registered</p>
+    </div>
+    <a href="/portal/workspaces/new" class="btn-new">+ New Workspace</a>
+  </div>
+
+  <% if (workspaces.length === 0) { %>
+    <div style="text-align:center;padding:60px;color:#4b5563">
+      <p style="font-size:18px">No workspaces yet.</p>
+      <a href="/portal/workspaces/new" class="btn-new" style="margin-top:16px">Create your first workspace</a>
+    </div>
+  <% } %>
+
+  <div class="ws-grid">
+    <% workspaces.forEach(ws => { %>
+    <div class="ws-card <%= ws.status === 'suspended' ? 'suspended' : '' %>">
+      <div class="ws-top">
+        <div>
+          <div class="ws-name"><%= ws.name %></div>
+          <div class="ws-slug">/w/<%= ws.slug %></div>
+        </div>
+        <span class="status-badge status-<%= ws.status %>">
+          <%= ws.status === 'active' ? 'Active' : 'Suspended' %>
+        </span>
+      </div>
+      <div class="ws-stats">
+        <div class="ws-stat">
+          <div class="ws-stat-val"><%= ws.userCount %> / <%= ws.maxUsers %></div>
+          <div class="ws-stat-lbl">Users</div>
+        </div>
+        <div class="ws-stat">
+          <div class="ws-stat-val"><%= ws.vehicleCount %> / <%= ws.maxVehicles %></div>
+          <div class="ws-stat-lbl">Vehicles</div>
+        </div>
+        <div class="ws-stat">
+          <div class="ws-stat-val"><%= ws.logCount %></div>
+          <div class="ws-stat-lbl">Log Entries</div>
+        </div>
+      </div>
+      <div class="last-activity">Last activity: <%= ws.lastActivity ? new Date(ws.lastActivity).toLocaleDateString('en-AU') : 'Never' %></div>
+      <div class="ws-footer">
+        <a href="/portal/workspaces/<%= ws.id %>" class="btn-detail">Manage</a>
+        <a href="/portal/workspaces/<%= ws.id %>/open" class="btn-detail">Open Workspace</a>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+</body>
+</html>

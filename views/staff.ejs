@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Staff — <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body id="appBody">
+
+<%- include('partials/header', { activeNav: 'staff' }) %>
+
+<div class="vehicles-topbar">
+  <a href="/app" class="topbar-btn back-btn">← Back</a>
+  <div class="vehicles-title">
+    <h1>Staff <span class="muted" style="font-size:1.1rem;">(<%= staffCount %>)</span></h1>
+    <p class="page-subtitle">Team Management</p>
+  </div>
+  <div class="vehicles-actions">
+    <input type="text" id="staffSearch" placeholder="Search staff…" class="vehicle-search">
+    <% if (user.role === 'admin') { %>
+    <button class="topbar-btn add-btn" onclick="openAddStaff()">+ Add Staff</button>
+    <% } %>
+  </div>
+</div>
+
+<% if (typeof successMsg !== 'undefined' && successMsg) { %>
+  <div class="section" style="padding-bottom:0;"><div class="alert alert-success"><%= successMsg %></div></div>
+<% } %>
+<% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+  <div class="section" style="padding-bottom:0;"><div class="alert alert-error"><%= errorMsg %></div></div>
+<% } %>
+
+<div class="vehicle-grid">
+  <% staff.forEach(s => { %>
+  <div class="list-card staff-card <%= !s.active ? 'deactivated' : '' %>" data-name="<%= s.name.toLowerCase() %>">
+
+    <!-- Staff card header row -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <%= (s.firstName || s.name || 'U').charAt(0).toUpperCase() %>
+        </div>
+        <div style="min-width:0;">
+          <a href="/app/staff/<%= s.id %>" style="color:var(--text);font-weight:700;font-size:15px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;display:block;"><%= s.name %></a>
+          <div style="font-size:11px;color:var(--text-dim);font-family:monospace;"><%= s.username || '' %></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+        <% if (s.isLive && s.live) { %>
+          <span class="staff-live-vehicle" title="Driving: <%= s.live.vehicleRego %>">🚚 <%= s.live.vehicleRego || '—' %></span>
+          <span class="live-pill" title="<%= s.live.minutesAgo %> mins ago">
+            <span class="live-dot live"></span>
+            <%= (s.live.temp !== null && s.live.temp !== undefined) ? s.live.temp : '—' %>°C
+          </span>
+        <% } else if (s.isOwner) { %>
+          <span class="staff-badge badge-admin" title="Workspace Owner">OWNER</span>
+        <% } else { %>
+          <span class="staff-badge badge-<%= s.role %>">
+            <%= s.role.toUpperCase() %>
+          </span>
+        <% } %>
+        <% if (!s.active) { %>
+          <span class="live-pill warning" style="font-size:10px;">Inactive</span>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row"><span class="stat-label">Total shifts</span><span class="stat-value"><%= s.stats.totalShifts %></span></div>
+    <div class="stat-row"><span class="stat-label">Total logs</span><span class="stat-value"><%= s.stats.totalLogs %></span></div>
+    <div class="stat-row"><span class="stat-label">Missed checklists</span><span class="stat-value <%= s.stats.missedChecklists > 0 ? 'bad' : 'good' %>"><%= s.stats.missedChecklists %></span></div>
+    <div class="stat-row"><span class="stat-label">Last active</span><span class="stat-value"><%= s.stats.lastActiveDate || '—' %></span></div>
+    <div class="stat-row"><span class="stat-label">Avg temp</span><span class="stat-value"><%= (s.stats.averageTemp !== null && s.stats.averageTemp !== undefined) ? s.stats.averageTemp + '°C' : '—' %></span></div>
+
+    <!-- Actions (admin only, not for Owner accounts) -->
+    <% if (user.role === 'admin' && s.id !== user.id && !s.isOwner) { %>
+    <div class="vehicle-actions">
+      <!-- Role selector -->
+      <select
+        class="role-select"
+        data-staff-id="<%= s.id %>"
+        style="flex:1;padding:7px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border2);background:var(--bg-input);color:var(--text);"
+        onchange="updateRole(this)"
+        title="Change role"
+      >
+        <option value="driver" <%= s.role === 'driver' ? 'selected' : '' %>>Driver</option>
+        <option value="office" <%= s.role === 'office' ? 'selected' : '' %>>Office</option>
+        <option value="admin"  <%= s.role === 'admin'  ? 'selected' : '' %>>Admin</option>
+      </select>
+
+      <% if (!s.active) { %>
+        <form action="/app/staff/reactivate/<%= s.id %>" method="POST" style="flex:1;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <button class="btn success" style="width:100%;padding:7px 10px;font-size:12px;">Reactivate</button>
+        </form>
+      <% } else { %>
+        <form action="/app/staff/deactivate/<%= s.id %>" method="POST" style="flex:1;">
+          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <button class="btn danger" style="width:100%;padding:7px 10px;font-size:12px;">Deactivate</button>
+        </form>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+  <% }) %>
+</div>
+
+<!-- ADD STAFF MODAL -->
+<div id="addStaffModal" class="modal-overlay">
+  <div class="modal">
+    <h2>New Staff Member</h2>
+    <div style="display:flex;gap:8px;margin-bottom:var(--sp-md);">
+      <button type="button" onclick="setInviteMethod('password')" id="methodBtnPassword" class="btn" style="flex:1;">Password</button>
+      <button type="button" onclick="setInviteMethod('google')" id="methodBtnGoogle" class="btn ghost" style="flex:1;">Google</button>
+    </div>
+    <form action="/app/staff/add" method="POST" id="addStaffForm">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="accountType" id="inviteMethodInput" value="password">
+      <div class="form-group">
+        <label>First Name</label>
+        <input name="firstName" placeholder="First Name" required>
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input name="lastName" placeholder="Last Name">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;">
+          Role
+          <span class="tooltip-wrap">
+            <span class="tooltip-icon">ⓘ</span>
+            <span class="tooltip-box" style="min-width:300px;max-width:340px;">
+              <div style="display:grid;grid-template-columns:60px 1fr;gap:6px 10px;align-items:start;">
+                <strong style="color:#4ade80;">Driver</strong><span>Log temperatures and complete checklists only.</span>
+                <strong style="color:#60a5fa;">Office</strong><span>View all data, reports, and staff. Cannot change settings.</span>
+                <strong style="color:#f87171;">Admin</strong><span>Full access — manage staff, assets, settings, and sign off weekly sheets.</span>
+              </div>
+            </span>
+          </span>
+        </label>
+        <select name="role" required>
+          <option value="" disabled selected hidden>Select Role</option>
+          <option value="driver">Driver — Temperature logging only</option>
+          <option value="office">Office — View reports &amp; data</option>
+          <option value="admin">Admin — Full workspace access</option>
+        </select>
+      </div>
+      <div id="googleEmailRow" style="display:none;" class="form-group">
+        <label>Google Email Address</label>
+        <input name="email" type="email" placeholder="staff@example.com">
+      </div>
+      <button class="btn" type="submit" style="width:100%;">Add Staff Member</button>
+      <button type="button" class="btn-secondary" onclick="closeAddStaff()" style="width:100%;margin-top:8px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div class="app-footer">
+  Logged in as <strong><%= user.role.toUpperCase() %></strong> &bull; <a href="/logout">Logout</a>
+</div>
+
+<script>
+// ── Dark mode ─────────────────────────────────────────────────
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+
+// ── Hamburger ─────────────────────────────────────────────────
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+
+// ── Modal ─────────────────────────────────────────────────────
+function openAddStaff()  { document.getElementById('addStaffModal').style.display = 'flex'; }
+function closeAddStaff() { document.getElementById('addStaffModal').style.display = 'none'; }
+
+function setInviteMethod(method) {
+  document.getElementById('inviteMethodInput').value = method;
+  document.getElementById('googleEmailRow').style.display = method === 'google' ? 'block' : 'none';
+  document.getElementById('methodBtnPassword').className = method === 'password' ? 'btn' : 'btn ghost';
+  document.getElementById('methodBtnGoogle').className   = method === 'google'   ? 'btn' : 'btn ghost';
+}
+
+// ── Role update (Phase 2 Bug Fix) ────────────────────────────
+// Uses POST form to properly persist role change in database
+function updateRole(select) {
+  const staffId = select.dataset.staffId;
+  const newRole = select.value;
+  const originalValue = select.getAttribute('data-original') || select.value;
+
+  // Confirm change
+  if (!confirm(`Change role to "${newRole.toUpperCase()}"?`)) {
+    select.value = originalValue;
+    return;
+  }
+
+  // Create and submit form (ensures proper POST, session-aware request)
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/app/staff/update-role';
+  form.style.display = 'none';
+
+  const security-tokenInput  = document.createElement('input');
+  security-tokenInput.name   = '_security-token';
+  security-tokenInput.value  = '<%= security-tokenToken %>';
+
+  const idInput  = document.createElement('input');
+  idInput.name   = 'staffId';
+  idInput.value  = staffId;
+
+  const roleInput  = document.createElement('input');
+  roleInput.name   = 'role';
+  roleInput.value  = newRole;
+
+  form.appendChild(security-tokenInput);
+  form.appendChild(idInput);
+  form.appendChild(roleInput);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+// Store original values for cancel support
+document.querySelectorAll('.role-select').forEach(sel => {
+  sel.setAttribute('data-original', sel.value);
+});
+
+// ── Search ────────────────────────────────────────────────────
+const searchInput = document.getElementById('staffSearch');
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    document.querySelectorAll('.staff-card').forEach(card => {
+      card.style.display = (card.dataset.name || '').includes(query) ? '' : 'none';
+    });
+  });
+}
+</script>
+
+<!-- Add Staff Modal (item 12) -->
+<div id="add-staff-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:#1c1f26;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px;width:100%;max-width:480px;margin:16px;position:relative;">
+    <button onclick="closeAddStaffModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#9ca3af;cursor:pointer;font-size:20px;">&#215;</button>
+    <h2 style="margin:0 0 24px;font-size:20px;font-weight:700;color:#fff;">Add Staff Member</h2>
+    <form id="add-staff-form" method="POST" action="/app/staff/add">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;">Full Name *</label>
+        <input type="text" name="name" required style="width:100%;box-sizing:border-box;background:#0f1115;border:1.5px solid #2d3748;color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;">Email *</label>
+        <input type="email" name="email" required style="width:100%;box-sizing:border-box;background:#0f1115;border:1.5px solid #2d3748;color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;">Role</label>
+        <select name="role" style="width:100%;box-sizing:border-box;background:#0f1115;border:1.5px solid #2d3748;color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;">
+          <option value="driver">Driver</option>
+          <option value="office">Office</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <!-- Temporary toggle (item 13) -->
+      <div style="margin-bottom:20px;padding:16px;background:#0f1115;border-radius:10px;border:1px solid #2d3748;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" name="isTemporary" id="temporaryCheck" onchange="toggleTemporaryOptions(this)" style="width:16px;height:16px;">
+          <span style="color:#fff;font-size:14px;">Temporary</span>
+        </label>
+        <p style="color:#9ca3af;font-size:12px;margin:6px 0 0 26px;">Once marked temporary, this cannot be reverted.</p>
+        <div id="expiry-options" style="display:none;margin-top:14px;">
+          <label style="display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;">Expiry</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select name="expiryPreset" id="expiryPreset" onchange="applyExpiry(this.value)" style="flex:1;min-width:120px;background:#1c1f26;border:1.5px solid #2d3748;color:#fff;padding:8px;border-radius:8px;font-size:13px;">
+              <option value="">— Select duration —</option>
+              <option value="4">4 weeks (1 month)</option>
+              <option value="12">12 weeks (3 months)</option>
+              <option value="24">24 weeks (6 months)</option>
+              <option value="36">36 weeks (9 months)</option>
+              <option value="52">52 weeks (1 year)</option>
+              <option value="custom">Custom date</option>
+            </select>
+          </div>
+          <div id="custom-date-wrap" style="display:none;margin-top:8px;">
+            <input type="date" name="expiryDate" id="expiryDateInput" style="width:100%;box-sizing:border-box;background:#1c1f26;border:1.5px solid #2d3748;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;">
+          </div>
+          <p id="expiry-display" style="color:#9ca3af;font-size:12px;margin-top:8px;"></p>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#9ca3af;margin-bottom:16px;">&#x2139; Login details will be sent to the email address above.</p>
+      <button type="submit" style="width:100%;padding:12px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Add Staff Member</button>
+    </form>
+    <div id="add-staff-success" style="display:none;color:#4ade80;margin-top:12px;font-size:14px;text-align:center;">&#10003; Staff member added. Login details sent.</div>
+  </div>
+</div>
+
+<script>
+function openAddStaffModal() {
+  const modal = document.getElementById('add-staff-modal');
+  modal.style.display = 'flex';
+}
+function closeAddStaffModal() {
+  document.getElementById('add-staff-modal').style.display = 'none';
+}
+function toggleTemporaryOptions(el) {
+  document.getElementById('expiry-options').style.display = el.checked ? 'block' : 'none';
+}
+function applyExpiry(val) {
+  const customWrap = document.getElementById('custom-date-wrap');
+  const display = document.getElementById('expiry-display');
+  const input = document.getElementById('expiryDateInput');
+  if (val === 'custom') {
+    customWrap.style.display = 'block';
+    display.textContent = '';
+  } else if (val) {
+    customWrap.style.display = 'none';
+    const weeks = parseInt(val);
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + weeks * 7);
+    expiry.setHours(0, 1, 0, 0); // 12:01am
+    input.value = expiry.toISOString().split('T')[0];
+    display.textContent = 'Expires: ' + expiry.toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'numeric'}) + ' at 12:01am';
+  } else {
+    customWrap.style.display = 'none';
+    display.textContent = '';
+  }
+}
+// Close on backdrop click
+document.getElementById('add-staff-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddStaffModal();
+});
+</script>
+
+</body>
+</html>

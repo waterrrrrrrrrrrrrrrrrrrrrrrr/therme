@@ -1,0 +1,26 @@
+# /etc/nginx/thermio_proxy_params
+# Proxy parameters for Thermio — include in all location blocks
+# This file replaces the default /etc/nginx/proxy_params for Thermio.
+
+proxy_http_version  1.1;
+
+# Pass real client info to Node.js (required for trust proxy + rate limiting)
+proxy_set_header    Host               $host;
+proxy_set_header    X-Real-IP          $remote_addr;
+proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
+proxy_set_header    X-Forwarded-Proto  $scheme;
+
+# WebSocket support (for future live features)
+proxy_set_header    Upgrade            $http_upgrade;
+proxy_set_header    Connection         "upgrade";
+
+# Timeouts
+proxy_read_timeout    60s;
+proxy_connect_timeout 10s;
+proxy_send_timeout    60s;
+
+# Buffering
+proxy_buffering on;
+proxy_buffer_size       8k;
+proxy_buffers           8 8k;
+proxy_busy_buffers_size 16k;

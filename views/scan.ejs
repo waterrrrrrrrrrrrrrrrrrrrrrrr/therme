@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/app.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scan Asset QR – <%= workspace.name %></title>
+  <style>
+    .scan-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 60px);
+      padding: 32px 20px;
+      text-align: center;
+    }
+    .scan-hero {
+      margin-bottom: 32px;
+    }
+    .scan-hero h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .scan-hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin: 0;
+    }
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--border2);
+      box-shadow: var(--shadow-lg);
+    }
+    .scan-instructions {
+      color: var(--text-muted);
+      margin-top: 20px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body id="appBody">
+<%- include('partials/header', { activeNav: 'scan' }) %>
+
+<div class="scan-page">
+  <div class="scan-hero">
+    <h1>📷 Scan Asset QR</h1>
+    <p>Assign Asset — point your camera at the QR code on the asset</p>
+  </div>
+
+  <div id="reader"></div>
+  <p class="scan-instructions">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Point your camera at the QR code to scan
+  </p>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+
+// Initialize QR scanner with proper permissions
+const qr = new Html5Qrcode("reader");
+
+// Request camera permission first, then start scanner
+Html5Qrcode.getCameras().then(cameras => {
+  if (cameras && cameras.length > 0) {
+    // Use back camera (environment facing) if available
+    const cameraId = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
+
+    qr.start(
+      cameraId.id || { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        videoConstraints: {
+          facingMode: "environment"
+        }
+      },
+      (decodedText) => {
+        // Auto redirect on QR detection
+        qr.stop().then(() => {
+          window.location.href = decodedText;
+        }).catch(() => {
+          window.location.href = decodedText;
+        });
+      },
+      (error) => {
+        // Ignore scan errors (continuous scanning)
+      }
+    ).catch(err => {
+      console.error('Unable to start camera:', err);
+      alert('Camera access denied or not available. Please grant camera permission and reload.');
+    });
+  } else {
+    alert('No camera found on this device.');
+  }
+}).catch(err => {
+  console.error('Camera permission error:', err);
+  alert('Unable to access camera. Please grant camera permission in your browser settings.');
+});
+</script>
+
+</body>
+</html>

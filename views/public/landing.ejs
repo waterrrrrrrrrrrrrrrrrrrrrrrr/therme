@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= appName %> – Modern Temperature Compliance Made Simple</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --bg2: #1a1d27;
+      --bg3: #21262d;
+      --border: #2a2d3a;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #3b82f6;
+      --blue-light: #60a5fa;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
+    a { text-decoration: none; }
+
+    /* ── Nav ── */
+    nav { background: rgba(15,17,23,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 20px; font-weight: 700; color: var(--blue-light); letter-spacing: -0.02em; }
+    .nav-logo span { color: var(--text); }
+    .nav-logo:hover { color: var(--blue-light); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a { color: var(--muted); font-size: 14px; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .btn-nav { background: var(--blue); color: white !important; padding: 8px 20px; border-radius: 8px; font-weight: 500; font-size: 14px; transition: background 0.2s; }
+    .btn-nav:hover { background: #2563eb !important; }
+
+    /* ── Hero ── */
+    .hero { max-width: 1200px; margin: 0 auto; padding: 100px 24px 80px; text-align: center; }
+    .hero-badge { display: inline-block; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--blue-light); padding: 5px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 28px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 24px; background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero h1 span { -webkit-text-fill-color: var(--blue-light); }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 580px; margin: 0 auto 40px; }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--blue); color: white; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600; transition: background 0.2s, transform 0.1s; display: inline-block; }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 500; transition: border-color 0.2s; display: inline-block; }
+    .btn-secondary:hover { border-color: var(--blue); color: var(--blue-light); }
+
+    /* ── Live Fleet Preview ── */
+    .live-preview { max-width: 1000px; margin: 0 auto 80px; padding: 0 24px; }
+    .live-app { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+    .live-topbar { background: var(--bg3); padding: 12px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+    .live-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .live-title { margin-left: 12px; color: var(--muted); font-size: 13px; flex: 1; }
+    .live-clock { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .live-pulse { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+    .live-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-bottom: 1px solid var(--border); }
+    .live-metric { padding: 18px 20px; border-right: 1px solid var(--border); }
+    .live-metric:last-child { border-right: none; }
+    .live-metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .live-metric-val { font-size: 32px; font-weight: 800; transition: opacity 0.3s; }
+    .live-rows { padding: 0; transition: opacity 0.4s; }
+    .live-row { display: flex; align-items: center; padding: 11px 20px; border-bottom: 1px solid rgba(42,45,58,0.6); gap: 12px; transition: opacity 0.4s; }
+    .live-row:last-child { border-bottom: none; }
+    .live-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; flex-shrink: 0; min-width: 64px; text-align: center; }
+    .lb-active { background: rgba(34,197,94,.15); color: #22c55e; }
+    .lb-overdue { background: rgba(239,68,68,.15); color: #f87171; }
+    .lb-done { background: rgba(100,116,139,.12); color: #94a3b8; }
+    .live-asset { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+    .live-driver { font-size: 13px; color: var(--muted); width: 130px; }
+    .live-temp { font-size: 13px; font-weight: 700; width: 80px; text-align: right; }
+    .live-temp.ok { color: #22c55e; } .live-temp.warn { color: #f59e0b; } .live-temp.cold { color: #60a5fa; }
+    .live-caption { text-align: center; color: #4b5563; font-size: 12px; margin-top: 14px; }
+
+    /* ── Features ── */
+    section { max-width: 1200px; margin: 0 auto; padding: 80px 24px; }
+    .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--blue-light); margin-bottom: 12px; font-weight: 600; }
+    .section-title { font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .section-sub { font-size: 17px; color: var(--muted); max-width: 520px; line-height: 1.7; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s, transform 0.2s; }
+    .feature-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .feature-icon { font-size: 28px; margin-bottom: 14px; }
+    .feature-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── Use cases ── */
+    .use-cases { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .use-cases-inner { max-width: 1200px; margin: 0 auto; padding: 80px 24px; }
+    .use-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 48px; }
+    .use-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 22px; text-align: center; }
+    .use-card .use-icon { font-size: 32px; margin-bottom: 12px; }
+    .use-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .use-card p { font-size: 13px; color: var(--muted); }
+
+    /* ── Why Thermio ── */
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 48px; }
+    .why-item { display: flex; align-items: flex-start; gap: 12px; }
+    .why-icon { font-size: 20px; margin-top: 2px; flex-shrink: 0; }
+    .why-text h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .why-text p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* Footer handled by shared public-footer partial */
+
+    /* ── Mobile Improvements ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-logo { font-size: 18px; }
+      .hero { padding: 60px 20px 50px; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+      .live-metrics { grid-template-columns: 1fr; }
+      .live-metric { border-right: none; border-bottom: 1px solid var(--border); }
+      .live-metric:last-child { border-bottom: none; }
+      .live-row { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 16px; }
+      .live-driver { width: auto; }
+      .live-temp { width: auto; text-align: left; }
+      .features-grid { grid-template-columns: 1fr; gap: 14px; }
+      .use-grid { grid-template-columns: 1fr; gap: 12px; }
+      .why-grid { grid-template-columns: 1fr; }
+      section { padding: 50px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">🌡️ Temperature Compliance Platform</div>
+  <h1>Modern Temperature Compliance<br><span>Made Simple</span></h1>
+  <p>Real-time temperature monitoring, compliance sheets, and multi-asset management for cold chain operations.</p>
+  <div class="hero-actions">
+    <a href="/login" class="btn-primary">Get Started</a>
+    <a href="/demo" class="btn-secondary">View Demo</a>
+  </div>
+</div>
+
+<!-- Live Fleet Preview — single animated section -->
+<div class="live-preview">
+  <div class="live-app">
+    <div class="live-topbar">
+      <div class="live-dot" style="background:#ef4444;"></div>
+      <div class="live-dot" style="background:#f59e0b;"></div>
+      <div class="live-dot" style="background:#22c55e;"></div>
+      <span class="live-title">Thermio — Live Fleet Overview</span>
+      <span class="live-pulse"></span>
+      <span class="live-clock" id="liveClk"></span>
+    </div>
+    <div class="live-metrics">
+      <div class="live-metric">
+        <div class="live-metric-label">Live Vehicles</div>
+        <div class="live-metric-val" id="mLive" style="color:#22c55e;">—</div>
+      </div>
+      <div class="live-metric">
+        <div class="live-metric-label">Overdue</div>
+        <div class="live-metric-val" id="mOver" style="color:#ef4444;">—</div>
+      </div>
+      <div class="live-metric">
+        <div class="live-metric-label">Logs Today</div>
+        <div class="live-metric-val" id="mLogs" style="color:#60a5fa;">—</div>
+      </div>
+    </div>
+    <div class="live-rows" id="liveRows"></div>
+  </div>
+  <p class="live-caption">Simulated for illustration — real-time visibility available in your dashboard.</p>
+</div>
+<script>
+(function(){
+  var ASSETS=['Fridge Unit 1','Freezer Room A','Vehicle 04','Walk-In Chiller','Delivery Van 2','Freezer Unit B','Vehicle 07','Cold Store 3'];
+  var DRIVERS=['Jason M.','Rachel T.','Ben A.','Sarah K.','Tom N.','Priya L.','Chris W.','Dana F.'];
+  var STATUSES=['active','active','active','active','done','overdue'];
+  function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+  function ro(a){return a[ri(0,a.length-1)];}
+  function randTemp(s){
+    if(s==='overdue') return (ri(6,15)).toFixed(1);
+    if(s==='done') return '';
+    var t=(ri(-220,35)/10).toFixed(1);
+    return t;
+  }
+  function tempClass(t,s){
+    if(s==='done'||s==='overdue') return '';
+    var v=parseFloat(t);
+    if(v<0) return 'cold';
+    if(v>4) return 'warn';
+    return 'ok';
+  }
+  function buildRows(){
+    var used={},rows=[];
+    while(rows.length<6){
+      var a=ro(ASSETS);if(used[a])continue;used[a]=1;
+      var s=ro(STATUSES);
+      var t=randTemp(s);
+      rows.push({asset:a,driver:s==='done'?'—':ro(DRIVERS),status:s,temp:t,tc:tempClass(t,s)});
+    }
+    return rows;
+  }
+  function renderLive(){
+    var rows=buildRows();
+    var live=rows.filter(function(r){return r.status==='active';}).length;
+    var over=rows.filter(function(r){return r.status==='overdue';}).length;
+    var logs=ri(38,74);
+    var mL=document.getElementById('mLive');
+    var mO=document.getElementById('mOver');
+    var mLg=document.getElementById('mLogs');
+    var clk=document.getElementById('liveClk');
+    var rCont=document.getElementById('liveRows');
+    if(!mL||!rCont) return;
+    // Fade out
+    [mL,mO,mLg].forEach(function(el){el.style.opacity='0.3';});
+    rCont.style.opacity='0.3';
+    setTimeout(function(){
+      mL.textContent=live;
+      mO.textContent=over;
+      mLg.textContent=logs;
+      clk.textContent=new Date().toLocaleTimeString();
+      rCont.innerHTML=rows.map(function(r){
+        var tempStr=r.status==='done'?'Shift complete':r.status==='overdue'?'Last: '+ri(1,4)+'h ago':r.temp+'°C';
+        return '<div class="live-row">'+
+          '<span class="live-badge lb-'+r.status+'">'+(r.status==='active'?'Active':r.status==='overdue'?'Overdue':'Done')+'</span>'+
+          '<span class="live-asset">'+r.asset+'</span>'+
+          '<span class="live-driver">'+r.driver+'</span>'+
+          '<span class="live-temp '+r.tc+'">'+tempStr+'</span>'+
+          '</div>';
+      }).join('');
+      // Fade in
+      [mL,mO,mLg].forEach(function(el){el.style.opacity='1';});
+      rCont.style.opacity='1';
+    },300);
+  }
+  renderLive();
+  setInterval(renderLive,4000);
+})();
+</script>
+
+<!-- Features -->
+
+<section id="features">
+  <div class="section-label">Features</div>
+  <div class="section-title">Everything you need for cold chain compliance</div>
+  <div class="section-sub">Built for food service, cold storage, and fleet operations that need reliable audit trails.</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <div class="feature-title">Live Monitoring</div>
+      <div class="feature-desc">Real-time driver status, temperature alerts, and overdue vehicle detection on a single screen.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <div class="feature-title">Compliance Sheets</div>
+      <div class="feature-desc">Auto-generated weekly temperature sheets with driver signatures, admin sign-off, and PDF export.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <div class="feature-title">Role-Based Access</div>
+      <div class="feature-desc">Driver, Office, and Admin roles — each person sees only what they need, nothing more.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏢</div>
+      <div class="feature-title">Multi-Asset Management</div>
+      <div class="feature-desc">Cold chain temperature monitoring and compliance built for the way your team actually works.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖥</div>
+      <div class="feature-title">Audit Logs</div>
+      <div class="feature-desc">Colour-coded event console with filters, timestamps, and automatic custom log retention.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌡️</div>
+      <div class="feature-title">Custom Temp Ranges</div>
+      <div class="feature-desc">Per-zone temperature rules for cabin, chiller, and freezer with out-of-range alerting.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Exception Reports</div>
+      <div class="feature-desc">Automatically surface out-of-range readings, missed checklists, and overdue vehicles.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-title">Smart Notifications</div>
+      <div class="feature-desc">We support custom document layouts. Reach out to us and we can arrange it.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📤</div>
+      <div class="feature-title">Scheduled Exports</div>
+      <div class="feature-desc">Automatic PDF and ZIP exports on a configurable weekly schedule, emailed to your team.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Use Cases -->
+<div class="use-cases">
+  <div class="use-cases-inner">
+    <div class="section-label">Use Cases</div>
+    <div class="section-title">Trusted across cold chain industries</div>
+    <div class="use-grid">
+      <div class="use-card">
+        <div class="use-icon">🍔</div>
+        <h3>Food Service</h3>
+        <p>Compliance logging for food delivery fleets and cold storage facilities.</p>
+      </div>
+      <div class="use-card">
+        <div class="use-icon">🚛</div>
+        <h3>Cold Chain Logistics</h3>
+        <p>End-to-end temperature tracking for refrigerated freight operations.</p>
+      </div>
+      <div class="use-card">
+        <div class="use-icon">👨‍🍳</div>
+        <h3>Catering & Events</h3>
+        <p>On-site temperature records for catering vehicles and mobile kitchens.</p>
+      </div>
+      <div class="use-card">
+        <div class="use-icon">💊</div>
+        <h3>Medical Storage</h3>
+        <p>Pharmaceutical cold chain compliance with strict temperature audit trails.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Why Thermio -->
+<section>
+  <div class="section-label">Why Thermio</div>
+  <div class="section-title">Built for audit readiness</div>
+  <div class="section-sub">Replace paper-based compliance logs with a digital solution that satisfies regulators, auditors, and food safety standards.</div>
+  <div class="features-grid" style="margin-top:48px;">
+    <div class="feature-card">
+      <div class="feature-icon">✅</div>
+      <div class="feature-title">Audit Ready</div>
+      <div class="feature-desc">Digitally signed compliance sheets locked after admin approval. Tamper-evident records.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Fast Logging</div>
+      <div class="feature-desc">QR-code truck access means drivers are logging temps in under 10 seconds.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Reliable &amp; Audit-Ready</div>
+      <div class="feature-desc">Automatic compliance sheets and digital sign-offs keep your fleet inspection-ready at all times.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌏</div>
+      <div class="feature-title">Timezone Aware</div>
+      <div class="feature-desc">All dates, logs, and exports reflect your local time — accurate records wherever your fleet operates.</div>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/public-footer') %>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= appName %> — Login</title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .split-login-wrapper { display:flex; min-height:100vh; }
+    .login-side { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+    .photo-side { flex:1; position:relative; overflow:hidden; background:#0f1115; }
+    @media(max-width:850px){ .photo-side{display:none;} }
+    .login-card { width:100%; max-width:400px; }
+    .login-card h1 { font-size:28px; font-weight:700; margin:0 0 4px 0; color:#fff; }
+    .login-card .subtitle { color:#9ca3af; margin:0 0 28px 0; font-size:15px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:13px; color:#9ca3af; margin-bottom:6px; }
+    .form-group input { width:100%; box-sizing:border-box; background:#1c1f26; border:1.5px solid #2d3748; color:#fff; padding:12px 14px; border-radius:10px; font-size:15px; outline:none; transition:border-color .2s; }
+    .form-group input:focus { border-color:#3b82f6; }
+    .btn-primary { width:100%; padding:13px; background:linear-gradient(180deg,#3b82f6,#2563eb); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 8px 20px rgba(59,130,246,.35); }
+    .btn-primary:hover { background:linear-gradient(180deg,#60a5fa,#3b82f6); }
+    .error-msg { background:#1f1014; border:1px solid #ef4444; color:#f87171; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+    .brand-logo { width:40px; height:40px; background:linear-gradient(135deg,#3b82f6,#2563eb); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:#fff; }
+    .brand-name { font-size:22px; font-weight:700; color:#fff; }
+    /* Photo side decorations */
+    .photo-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 60% 40%, #1c2a4a 0%, #0f1115 70%); }
+    .photo-circles { position:absolute; inset:0; }
+    .circle { position:absolute; border-radius:50%; opacity:.15; }
+    .c1 { width:400px; height:400px; background:#3b82f6; top:-80px; right:-80px; }
+    .c2 { width:300px; height:300px; background:#facc15; bottom:60px; right:80px; opacity:.1; }
+  </style>
+</head>
+<body>
+<div class="split-login-wrapper">
+  <div class="login-side">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-logo">T</div>
+        <div class="brand-name"><%= appName %></div>
+      </div>
+      <h1>Sign in</h1>
+      <p class="subtitle">Enter your workspace name to continue.</p>
+
+      <% if (typeof workspaceNotFound !== 'undefined' && workspaceNotFound) { %>
+  <div id="wsNotFoundMsg" style="background:#1f1014;border:1px solid #ef4444;color:#f87171;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:14px;">
+    Workspace does not exist.
+  </div>
+  <script>setTimeout(()=>{const el=document.getElementById('wsNotFoundMsg');if(el)el.style.display='none';},5000);</script>
+<% } %>
+<% if (error) { %>
+        <div class="error-msg"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login" autocomplete="off">
+        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <div class="form-group">
+          <label for="workspace">Workspace</label>
+          <input type="text" id="workspace" name="workspace" placeholder="Workspace Name" required autofocus autocomplete="off">
+        </div>
+        <button type="submit" class="btn-primary">Continue</button>
+      </form>
+    </div>
+  </div>
+  <div class="photo-side">
+    <div class="photo-bg"></div>
+    <div class="photo-circles">
+      <div class="circle c1"></div>
+      <div class="circle c2"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

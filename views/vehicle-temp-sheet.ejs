@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📄 <%= truck.rego %> – Temperature Sheet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+<style>
+  body {
+    background-color: #0f1115; 
+    font-family: Arial, sans-serif;
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .app-content-wrapper {
+    padding: 40px 24px;
+    display: flex;
+    justify-content: center;
+    background-color: #0f1115;
+  }
+.signature-img.admin {
+  max-height: 25px;   /* 👈 smaller admin signature */
+  opacity: 0.9;       /* optional: slightly lighter */
+}
+  /* --- THE PAPER --- */
+  .paper {
+    width: 1122px; 
+    height: 794px; 
+    background: #dada7b; 
+    padding: 10mm;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    color: #000;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- TABLE STYLES --- */
+  .paper table {
+    width: 100%;
+    border-collapse: collapse; /* Merges borders to make lines continuous */
+    margin-bottom: 8px;
+    table-layout: fixed;
+    background: transparent;
+    border: 1px solid #000;
+  }
+
+  .paper th, .paper td {
+    border: 1px solid #000; /* Standard thin grid */
+    padding: 4px 2px;
+    text-align: center;
+    color: #000;
+    font-size: 11px;
+    height: 22px;
+    vertical-align: middle;
+  }
+
+  /* Specific Thick Borders */
+  .thick-border-right,
+  .paper th:first-child, 
+  .paper td:first-child {
+    border-right: 2.5px solid #000 !important;
+  }
+
+  /* --- TIME HEADER ALIGNMENT --- */
+  .time-header {
+    padding: 0 !important; /* Remove padding so grid fills the whole cell */
+  }
+
+  .time-group {
+    display: grid;
+    /* 35px matches the width="35px" you set in the <td> below */
+    grid-template-columns: 35px 1fr; 
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .time-group .time-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 10px;
+    /* This line now aligns perfectly with the column below */
+    border-right: 1px solid #000; 
+    height: 100%;
+  }
+
+  .time-group .product-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    font-size: 9px;
+  }
+
+  /* --- FOOTER & SIGNATURES --- */
+  .footer-container {
+    margin-top: auto; 
+    padding-top: 10px;
+  }
+
+  .sig-line, .name-line {
+    border-bottom: 1.5px solid #000; 
+    display: inline-block;
+    margin-right: 10px;
+    position: relative;
+  }
+
+  .sig-line { width: 180px; height: 30px; }
+  .name-line { width: 220px; text-align: left; }
+
+  .signature-img {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-height: 45px;
+    width: auto;
+  }
+
+  /* --- HELPER CLASSES --- */
+  .frz-header { display: flex; justify-content: space-between; padding: 0 2px; align-items: center; height: 100%; }
+  .header-meta { display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; margin-bottom: 10px; }
+  .title-section h1 { margin: 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; text-align: center; }
+  .title-section p { margin: 5px 0 10px 0; font-size: 11px; text-align: center; }
+  .left-align { text-align: left !important; padding-left: 6px; }
+
+  /* --- PRINT OPTIMIZATION --- */
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    header, .vehicles-topbar, .no-print { display: none !important; }
+    body, .app-content-wrapper { background: #ffffff !important; padding: 0 !important; margin: 0 !important; display: block !important; }
+    .paper { 
+      box-shadow: none !important; 
+      margin: 0 auto !important;
+      width: 100% !important; 
+      height: 100vh !important;
+      padding: 10mm !important; 
+      background: #ffffff !important; 
+    }
+  }
+  .paper th.dispatch-chill,
+.paper td.dispatch-chill {
+  border-right: 1px solid #000 !important;
+}
+</style>
+</head>
+<body>
+
+<%
+  // Variables passed directly from route:
+  // - monday (string), dayNames (array), dayMap (object), signOffLog (object|null)
+  // - checklistQuestions (array), tempRanges (object|null), sheetMeta (object|null), timezone (string)
+
+  // Helper: evaluate a single value against a zone's min/max
+  function _checkRange(val, zone) {
+    if (!tempRanges || val === null || val === undefined || val === '') return null;
+    const r = tempRanges[zone];
+    if (!r) return null;
+    const n = Number(val);
+    if (isNaN(n)) return null;
+    if (r.min !== null && r.min !== '' && r.min !== undefined && n < Number(r.min)) return 'low';
+    if (r.max !== null && r.max !== '' && r.max !== undefined && n > Number(r.max)) return 'high';
+    return 'ok';
+  }
+  function _alertMark(status) {
+    if (status === 'low') return ' ↓';
+    if (status === 'high') return ' ↑';
+    return '';
+  }
+  function _alertStyle(status) {
+    if (status === 'low') return 'color:#60a5fa;font-weight:700;';
+    if (status === 'high') return 'color:#f87171;font-weight:700;';
+    return '';
+  }
+  const _sm = (sheetMeta && typeof sheetMeta === 'object') ? sheetMeta : {};
+  const _tz = timezone || 'Australia/Perth';
+%>
+
+<header class="app-header no-print">
+  <div class="app-header-inner">
+    <button class="hamburger-btn" onclick="toggleHamburger()" id="hamburgerWrap">
+      <span class="hamburger-icon">☰</span>
+    </button>
+    <a href="/app" class="app-header-link">
+      <span class="app-title"><% if (_sm.companyDisplayName) { %><%= _sm.companyDisplayName %><% } else { %>Temperature Monitoring Solution<% } %></span>
+    </a>
+    <nav class="app-header-nav">
+      <a href="/app/staff" class="app-nav-link">Staff</a>
+      <a href="/app/assets" class="app-nav-link">Assets</a>
+    </nav>
+  </div>
+</header>
+
+<div class="vehicles-topbar no-print">
+  <div class="header-left">
+    <a href="/app/assets/<%= truck.id %>" class="topbar-btn back-btn">← Back</a>
+  </div>
+  <div class="vehicles-title">
+    <h1>🚚 <%= truck.rego %></h1>
+    <div class="subtitle">Weekly Temperature Record</div>
+  </div>
+  <div class="header-right">
+    <button class="topbar-btn add-btn" onclick="window.print()">
+      📄 Save as PDF
+    </button>
+  </div>
+</div>
+
+<% if (signOffLog && signOffLog.locked) { %>
+<div class="no-print" style="max-width:1170px;margin:0 auto 12px;padding:0 24px;">
+  <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:20px;">🔒</span>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#22c55e;">This compliance sheet has been digitally locked.</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px;">
+        Locked by <%= signOffLog.lock_metadata && signOffLog.lock_metadata.lockedBy ? signOffLog.lock_metadata.lockedBy : 'Administrator' %>
+        <% if (signOffLog.lock_metadata && signOffLog.lock_metadata.lockedAt) { %>
+          on <%= new Date(signOffLog.lock_metadata.lockedAt).toLocaleString('en-AU', { timeZone: _tz, day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+        <% } %>.
+        This record cannot be edited or altered.
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<div class="app-content-wrapper">
+  <div class="paper">
+    <div class="header-meta">
+      <div>
+        FORM No: SP1.4/F1
+        <% if (_sm.companyDisplayName) { %><span style="margin-left:16px;font-size:11px;font-weight:700;"><%= _sm.companyDisplayName %></span><% } %>
+        <% if (_sm.phone) { %><span style="margin-left:10px;font-size:10px;font-weight:normal;">Ph: <%= _sm.phone %></span><% } %>
+        <% if (_sm.email) { %><span style="margin-left:10px;font-size:10px;font-weight:normal;"><%= _sm.email %></span><% } %>
+      </div>
+      <div style="text-align: right;">
+        Issued 09/02/18<br>
+        Edition No 6
+      </div>
+    </div>
+
+    <div class="title-section">
+      <h1>TRUCK HYGIENE & DELIVERY TEMPERATURE RECORD</h1>
+      <p>Weekly Record for Cleaning, GMP and Temperature Control during deliveries.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th width="20%" class="left-align">WEEK STARTING</th>
+          <th colspan="6" style="font-size: 11px;"><%= monday %></th>
+        </tr>
+        <tr>
+          <td class="left-align">
+            <strong>Truck Reg:</strong> <%= truck.rego %><br>
+            <strong>Odometer:</strong> <%= signOffLog && signOffLog.odometer ? signOffLog.odometer : "———" %>
+
+          </td>
+          <th style="background: rgba(0,0,0,0.05)">MONDAY</th>
+          <th style="background: rgba(0,0,0,0.05)">TUESDAY</th>
+          <th style="background: rgba(0,0,0,0.05)">WEDNESDAY</th>
+          <th style="background: rgba(0,0,0,0.05)">THURSDAY</th>
+          <th style="background: rgba(0,0,0,0.05)">FRIDAY</th>
+          <th style="background: rgba(0,255,0,0.05)">SATURDAY</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%
+          const _defaultQs = [
+            "Is Vehicle Interior Clean Prior to Use?",
+            "Truck washed inside and outside?",
+            "Maintenance Required?",
+            "Products handled with care to minimise damage?",
+            "Has truck been pre-cooled prior to loading?"
+          ];
+          const _questions = (checklistQuestions && checklistQuestions.length > 0) ? checklistQuestions : _defaultQs;
+          _questions.forEach((qLabel, qIdx) => {
+            const qKey = `q${qIdx + 1}`;
+        %>
+          <tr>
+            <td class="left-align"><strong><%= qLabel %></strong></td>
+            <% dayNames.forEach(name => {
+                const log = dayMap[name];
+                // Use checklistSnapshot if available for historical accuracy
+                let answer = '—';
+                if (log && log.checklist) {
+                  const snap = log.checklistSnapshot && log.checklistSnapshot[qIdx];
+                  const rawVal = log.checklist[qKey];
+                  answer = rawVal === 'yes' ? '✓' : (rawVal === 'no' ? '⤫' : '—');
+                }
+            %>
+             <td>
+              <%= answer %>
+            </td>
+            <% }) %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div style="font-size: 10px; margin: 10px 0; line-height: 1.3;">
+      Carry out a Product Temperature Check at despatch and then record the Product Temperature every 2 hours or every 5 deliveries.<br>
+      <strong>Note: Chiller must be less than 5°C and Freezer products must be hard frozen.</strong>
+    </div>
+
+    <table>
+      <thead>
+<tr>
+  <th rowspan="2" width="80px" class="thick-border-right">Day / Date</th>
+  <th colspan="3" class="thick-border-right">Despatch</th>
+
+<th colspan="3" class="thick-border-right time-header">
+    <div class="time-group">
+      <div class="time-label">Time 1</div>
+      <div class="product-label">Product Temp</div>
+    </div>
+  </th>
+
+<th colspan="3" class="thick-border-right time-header">
+    <div class="time-group">
+      <div class="time-label">Time 2</div>
+      <div class="product-label">Product Temp</div>
+    </div>
+  </th>
+
+<th colspan="3" class="thick-border-right time-header">
+    <div class="time-group">
+      <div class="time-label">Time 3</div>
+      <div class="product-label">Product Temp</div>
+    </div>
+  </th>
+
+<th colspan="3" class="thick-border-right time-header">
+    <div class="time-group">
+      <div class="time-label">Time 4</div>
+      <div class="product-label">Product Temp</div>
+    </div>
+  </th>
+
+  <th colspan="3"class="time-header">
+    <div class="time-group">
+      <div class="time-label">Time 5</div>
+      <div class="product-label">Product Temp</div>
+    </div>
+  </th>
+</tr>
+        <tr>
+         <th width="35px">Time</th>
+         <th class="dispatch-chill">Chill</th>
+
+<th class="thick-border-right">Frz</th>
+
+          <th width="35px">Time</th><th>Chl</th>
+          <th class="thick-border-right"><div class="frz-header"><span>Frz</span><span>Y/N</span></div></th>
+          <th width="35px">Time</th><th>Chl</th>
+          <th class="thick-border-right"><div class="frz-header"><span>Frz</span><span>Y/N</span></div></th>
+          <th width="35px">Time</th><th>Chl</th>
+          <th class="thick-border-right"><div class="frz-header"><span>Frz</span><span>Y/N</span></div></th>
+          <th width="35px">Time</th><th>Chl</th>
+          <th class="thick-border-right"><div class="frz-header"><span>Frz</span><span>Y/N</span></div></th>
+          <th width="35px">Time</th><th>Chl</th>
+          <th><div class="frz-header"><span>Frz</span><span>Y/N</span></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% dayNames.forEach(name => { 
+            const log = dayMap[name];
+            const temps = log && log.temps ? log.temps : [];
+
+            const dispatch = temps[0] || {}; 
+        %>
+        <tr style="height: 30px;">
+          <td style="font-weight: bold;" class="thick-border-right">
+            <%= name %><br>
+            <span style="font-weight: normal; font-size: 8px;">
+              <%= log && log.driverName ? log.driverName : '—' %>
+
+            </span>
+          </td>
+
+          <%
+            const _dChillStatus = _checkRange(dispatch.chiller, 'chiller');
+            const _dFrzStatus   = _checkRange(dispatch.freezer, 'freezer');
+          %>
+          <td><%= dispatch && dispatch.time ? new Date(dispatch.time).toLocaleTimeString('en-AU', {
+  timeZone: _tz,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}) : '—' %></td>
+          <td style="<%= _alertStyle(_dChillStatus) %>"><%= dispatch.chiller !== undefined && dispatch.chiller !== null ? (dispatch.chiller + _alertMark(_dChillStatus)) : '—' %></td>
+          <td class="thick-border-right" style="<%= _alertStyle(_dFrzStatus) %>"><%= dispatch.freezer ? ((dispatch.freezer <= -15 ? 'Y' : 'N') + _alertMark(_dFrzStatus)) : '—' %></td>
+
+          <% for(let i = 1; i <= 5; i++) { const t = temps[i];
+             const _tChlVal = t && (t.chiller !== undefined && t.chiller !== null) ? t.chiller : (t && t.cabin !== undefined && t.cabin !== null ? t.cabin : null);
+             const _tChlZone = (t && t.chiller !== undefined && t.chiller !== null) ? 'chiller' : 'cabin';
+             const _tChlStatus = _tChlVal !== null ? _checkRange(_tChlVal, _tChlZone) : null;
+             const _tFrzStatus = t ? _checkRange(t.freezer, 'freezer') : null;
+          %>
+            <td><%= t && t.time ? new Date(t.time).toLocaleTimeString('en-AU', {
+  timeZone: _tz,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}) : '—' %></td>
+            <td style="<%= _alertStyle(_tChlStatus) %>"><%= _tChlVal !== null ? (_tChlVal + _alertMark(_tChlStatus)) : '—' %></td>
+            <td class="<%= i < 5 ? 'thick-border-right' : '' %>" style="<%= _alertStyle(_tFrzStatus) %>">
+                <%= t && t.freezer ? ((t.freezer <= -15 ? 'Y' : 'N') + _alertMark(_tFrzStatus)) : '—' %>
+            </td>
+          <% } %>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="footer-container" style="border-top: none;">
+      <div style="padding-top: 10px; font-size: 10px; margin-bottom: 20px; border-top: 2px solid #000;">
+        <strong>Comments:</strong>
+        <div style="min-height: 25px; width: 100%; margin-top: 5px; border-bottom: 1.5px solid #000;">
+           <%= signOffLog?.comments || "No Comments Made" %>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; align-items: baseline;">
+        <div style="display: flex; align-items: baseline;">
+          <%= _sm.signatureLabel || 'CSR' %> Sign:
+          <span class="sig-line">
+            <% if (signOffLog?.signature) { %>
+              <img src="<%= signOffLog.signature %>" class="signature-img" alt="Signature">
+            <% } %>
+          </span>
+          Name: <span class="name-line"><%= signOffLog?.driverName || "" %></span>
+        </div>
+        <div>
+          Verified:
+          <span class="sig-line">
+<% if (signOffLog?.admin_signature) { %>
+  <img src="<%= signOffLog.admin_signature %>" class="signature-img admin">
+<% } %>
+          </span>
+          Name: <span class="name-line"><%= signOffLog?.admin_signed_by || "" %></span>
+        </div>
+      </div>
+      <% if (_sm.footerText) { %>
+      <div style="margin-top:6px;font-size:9px;color:#555;text-align:center;border-top:1px solid #ccc;padding-top:4px;">
+        <%= _sm.footerText %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

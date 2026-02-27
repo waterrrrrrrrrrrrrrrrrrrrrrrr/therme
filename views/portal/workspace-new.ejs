@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Workspace — <%= appName %></title>
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .sa-header{background:#12151b;border-bottom:1px solid #2d3748;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+    .container{max-width:660px;margin:32px auto;padding:0 28px;}
+    h1{font-size:24px;font-weight:800;margin:0 0 6px;}
+    .subtitle{color:#9ca3af;font-size:14px;margin:0 0 24px;line-height:1.5;}
+    .card{background:linear-gradient(180deg,#1f2328,#181b20);border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+    .form-section{margin-bottom:28px;}
+    .section-title{font-size:13px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #2d3748;}
+    .form-group{margin-bottom:16px;}
+    label{display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;}
+    input,select{width:100%;box-sizing:border-box;background:#0f1115;border:1.5px solid #2d3748;color:#fff;padding:11px 14px;border-radius:10px;font-size:14px;outline:none;}
+    input:focus,select:focus{border-color:#7c3aed;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .invite-section{padding:16px;background:#0f1115;border-radius:10px;border:1px solid #2d3748;}
+    .invite-toggle{display:flex;gap:12px;margin-bottom:16px;}
+    .invite-opt{flex:1;padding:10px;background:#1c1f26;border:1.5px solid #2d3748;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#9ca3af;}
+    .invite-opt.selected{border-color:#7c3aed;color:#a78bfa;background:#1a1029;}
+    .error{background:#1f1014;border:1px solid #ef4444;color:#f87171;padding:10px 14px;border-radius:8px;margin-bottom:20px;font-size:14px;}
+    .btn{width:100%;padding:13px;background:linear-gradient(180deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+    .back-link{color:#6b7280;text-decoration:none;font-size:13px;display:inline-block;margin-bottom:20px;}
+    .back-link:hover{color:#9ca3af;}
+  </style>
+</head>
+<body>
+<div class="sa-header">
+  <span style="font-size:18px;font-weight:700;color:#fff"><%= appName %></span>
+</div>
+<div class="container">
+  <a href="/portal" class="back-link">← Back to Dashboard</a>
+  <h1>Create Workspace</h1>
+  <p class="subtitle">Set up a new workspace and invite the first admin.</p>
+  <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+  <div class="card">
+    <form method="POST" action="/portal/workspaces/new" id="createForm">
+      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+
+      <div class="form-section">
+        <div class="section-title">Workspace Details</div>
+        <div class="form-group">
+          <label>Workspace Name *</label>
+          <input type="text" name="name" id="wsName" required placeholder="Acme Logistics" autofocus>
+        </div>
+        <div class="row2">
+          <div class="form-group">
+            <label>Max Users</label>
+            <input type="number" name="maxUsers" value="20" min="1" max="500">
+          </div>
+          <div class="form-group">
+            <label>Max Vehicles</label>
+            <input type="number" name="maxVehicles" value="20" min="1" max="500">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Max Checklist Questions <span style="color:#6b7280;font-size:11px">(1–10, default 5)</span></label>
+          <input type="number" name="maxQuestions" value="5" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">First Admin Invite</div>
+        <div class="invite-toggle">
+          <div class="invite-opt selected" id="optPassword" onclick="selectMethod('password')">Password Login</div>
+          <div class="invite-opt" id="optGoogle" onclick="selectMethod('google')">Google Login</div>
+        </div>
+        <input type="hidden" name="adminInviteMethod" id="adminInviteMethod" value="password">
+
+        <div class="invite-section">
+          <div class="row2">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" name="adminFirstName" placeholder="Sean">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" name="adminLastName" placeholder="Blake">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email <span id="emailNote" style="color:#6b7280;font-size:11px">(optional — credentials shown on screen)</span></label>
+            <input type="email" name="adminEmail" id="adminEmail" placeholder="admin@company.com">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Create Workspace</button>
+    </form>
+  </div>
+</div>
+<script>
+function selectMethod(method) {
+  document.getElementById('adminInviteMethod').value = method;
+  document.getElementById('optPassword').classList.toggle('selected', method === 'password');
+  document.getElementById('optGoogle').classList.toggle('selected', method === 'google');
+  const note = document.getElementById('emailNote');
+  const emailInput = document.getElementById('adminEmail');
+  if (method === 'google') {
+    note.textContent = '(required — invite sent via Google)';
+    emailInput.required = true;
+  } else {
+    note.textContent = '(optional — credentials shown on screen)';
+    emailInput.required = false;
+  }
+}
+</script>
+</body>
+</html>

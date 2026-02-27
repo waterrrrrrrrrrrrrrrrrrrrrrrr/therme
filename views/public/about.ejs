@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About – <%= appName %></title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#21262d;--border:#2a2d3a;--text:#e6edf3;--muted:#8b949e;--blue:#3b82f6;--blue-light:#60a5fa;}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;}
+    a{text-decoration:none;}
+    nav{background:rgba(15,17,23,0.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-size:20px;font-weight:700;color:var(--blue-light);}
+    .nav-links{display:flex;gap:24px;align-items:center;}
+    .nav-links a{color:var(--muted);font-size:14px;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    .btn-nav{background:var(--blue);color:white !important;padding:8px 20px;border-radius:8px;font-size:14px;}
+    .nav-links a.nav-active {
+      color: var(--text) !important;
+      background: rgba(59,130,246,0.12);
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .page{max-width:760px;margin:0 auto;padding:80px 24px 120px;}
+    .hero-label{font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light);margin-bottom:16px;}
+    h1{font-size:44px;font-weight:800;letter-spacing:-0.025em;line-height:1.15;margin-bottom:20px;}
+    h1 span{color:var(--blue-light);}
+    .lead{font-size:19px;color:var(--muted);line-height:1.65;margin-bottom:48px;max-width:600px;}
+    h2{font-size:22px;font-weight:700;margin:52px 0 12px;color:var(--text);}
+    p{color:var(--muted);font-size:16px;margin-bottom:16px;line-height:1.75;}
+    .callout{background:linear-gradient(135deg,rgba(59,130,246,0.07) 0%,rgba(99,102,241,0.07) 100%);border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:28px 32px;margin:40px 0;}
+    .callout-quote{font-size:17px;color:var(--text);font-style:italic;line-height:1.7;margin-bottom:10px;}
+    .callout-attr{font-size:13px;color:var(--muted);}
+    .value-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+    .value-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
+    .value-icon{font-size:22px;margin-bottom:8px;}
+    .value-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .value-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+    .cta-block{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center;margin-top:60px;}
+    .cta-block p{margin:0 0 16px;font-size:16px;}
+    .cta-block a{display:inline-block;background:var(--blue);color:white;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;}
+    @media(max-width:600px){h1{font-size:30px;}.value-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><%= appName %></a>
+    <div class="nav-links">
+      <a href="/features">Features</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about" class="nav-active">About</a>
+      <a href="/security">Security</a>
+      <a href="/login" class="btn-nav">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="hero-label">Our Story</div>
+  <h1>Built by people who <span>actually needed this</span></h1>
+  <p class="lead">Thermio started because paper-based compliance was breaking real businesses. We rebuilt the process from scratch — and we're not done.</p>
+
+  <div class="callout">
+    <div class="callout-quote">"Compliance shouldn't require paper forms, manual data entry, or enterprise-level budgets. Every cold chain operator deserves a system that just works — on day one, every day after."</div>
+    <div class="callout-attr">— Thermio founding principle</div>
+  </div>
+
+  <h2>Where it started</h2>
+  <p>A refrigerated logistics company was spending hours each week on manual compliance logs. Drivers filled out paper forms. Office staff transferred data into spreadsheets. Audits meant digging through folders.</p>
+  <p>We stepped in with a different idea: what if drivers could start a shift from a QR code, log temperatures from their phone, and have a compliance-ready record waiting at week's end — with zero manual transfer?</p>
+  <p>That question became Thermio.</p>
+
+  <h2>What we care about</h2>
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="value-icon">🎯</div>
+      <div class="value-title">Accuracy first</div>
+      <div class="value-desc">Every temperature reading, checklist answer, and sign-off is timestamped and tamper-evident. Your audits shouldn't depend on trust — they should depend on data.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">⚡</div>
+      <div class="value-title">Built for speed</div>
+      <div class="value-desc">Drivers spend seconds on compliance, not minutes. Admins get a real-time view of their fleet without chasing anyone. Fast tools get used. Slow ones get skipped.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">🔒</div>
+      <div class="value-title">Isolated by design</div>
+      <div class="value-desc">Each workspace is its own enclosed environment. No data shared between operators. No third-party integrations required. Your records belong to you.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">📋</div>
+      <div class="value-title">Audit-ready always</div>
+      <div class="value-desc">Weekly compliance sheets generate automatically. Temperature exceptions are flagged in real time. When a regulator shows up, you're ready — not scrambling.</div>
+    </div>
+  </div>
+
+  <h2>Who we build for</h2>
+  <p>Thermio is built for food service fleets, cold chain logistics, catering operators, and medical cold storage — anyone who needs to prove their temperature compliance to regulators, clients, or auditors.</p>
+  <p>We don't try to be everything. We do cold chain compliance exceptionally well, and we keep it that way.</p>
+
+  <h2>Custom document layouts</h2>
+  <p>We support custom document layouts for operators with specific branding or format requirements. Reach out to us and we can arrange it.</p>
+
+  <div class="cta-block">
+    <p>Ready to replace your paper logs?</p>
+    <a href="/login">Get started with Thermio →</a>
+  </div>
+</div>
+
+<%- include('../partials/public-footer') %>
+</body>
+</html>

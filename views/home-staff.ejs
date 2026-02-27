@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dashboard — <%= workspace.name %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <style>
+    .staff-layout-wrapper { max-width: 900px; margin: 0 auto; padding: 0 var(--sp-lg); }
+    .staff-grid-top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-lg); margin-bottom: var(--sp-xl); }
+    @media (max-width: 640px) { .staff-grid-top { grid-template-columns: 1fr; } }
+
+    /* Accordion */
+    .archive-accordion, .week-group, .day-group,
+    .archive-accordion *, .archive-accordion *:before, .archive-accordion *:after {
+      list-style: none !important; list-style-type: none !important; text-decoration: none;
+    }
+    .week-group {
+      margin-bottom: var(--sp-md);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg2);
+      overflow: hidden;
+    }
+    .accordion-trigger {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; background: transparent; border: none; color: var(--text);
+      cursor: pointer; font-size: 1rem; text-align: left;
+    }
+    .week-trigger { font-weight: 700; border-left: 4px solid var(--yellow); }
+    .day-trigger {
+      background: var(--bg3); border-radius: var(--radius-sm); margin: 8px auto;
+      width: calc(100% - 16px); border-left: 4px solid var(--blue);
+    }
+    .accordion-content { display: none; background: var(--bg); padding: 6px; }
+    .accordion-content.open { display: block; }
+
+    .temp-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 14px; }
+    .temp-chip {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 10px 14px; min-width: 100px; flex-shrink: 0;
+    }
+    .temp-chip.start { border-left: 3px solid var(--green); }
+    .temp-chip.end   { border-left: 3px solid var(--red); }
+    .temp-time  { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; font-family: monospace; }
+    .temp-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+    .temp-value { font-size: 20px; font-weight: 700; color: var(--text); }
+    .temp-multi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 4px; }
+    .temp-col   { text-align: center; }
+
+    body.light-mode .week-group { background: #fff; border-color: #e0e2e8; }
+    body.light-mode .accordion-content { background: #f5f7fa; }
+    body.light-mode .temp-chip { background: #fff; border-color: #e0e2e8; }
+  </style>
+</head>
+<body id="appBody">
+
+<%- include('partials/header', { activeNav: '' }) %>
+
+<div class="home-wrapper">
+  <div class="home-top" style="display:block;">
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 4px;">Welcome back, <%= user.firstName || user.name %></h1>
+    <div style="color:var(--text-muted);font-size:14px;margin-bottom:var(--sp-xl);">Ready to start your shift</div>
+  </div>
+
+  <div class="staff-layout-wrapper">
+    <p class="section-label">Quick Actions</p>
+    <div class="staff-grid-top">
+      <div class="home-card blue">
+        <h2>📷 Scan Asset</h2>
+        <p>Scan the QR code to begin checklist &amp; logging</p>
+        <a href="/app/scan">Start Shift</a>
+      </div>
+      <div class="home-card yellow">
+        <h2>📊 My Activity</h2>
+        <p>Completed <strong><%= staffStats.shiftsCompleted %></strong> shifts across <strong><%= staffStats.trucksDriven %></strong> assets.</p>
+        <p style="margin-top:4px;">Total Temp Checks: <strong><%= staffStats.totalTempChecks %></strong></p>
+      </div>
+    </div>
+
+    <div id="archive" style="margin-top:var(--sp-sm);">
+      <p class="section-label" style="margin-bottom:var(--sp-md);">Previous Shifts</p>
+      <div class="archive-accordion">
+        <% const weeks = Object.keys(weeklyGroups).sort().reverse();
+           const _signOffDay = typeof signOffDay !== 'undefined' ? signOffDay : 5;
+           weeks.forEach((monday, wIndex) => {
+             const mon = new Date(monday);
+             const weekEnd = new Date(monday);
+             const daysFromMon = _signOffDay === 0 ? 6 : _signOffDay - 1;
+             weekEnd.setDate(mon.getDate() + daysFromMon);
+             const options = { day: 'numeric', month: 'short' };
+        %>
+          <div class="week-group">
+            <button class="accordion-trigger week-trigger" onclick="toggleAccordion('week-<%= wIndex %>')">
+              <span>Week: <%= mon.toLocaleDateString('en-AU', options) %> – <%= weekEnd.toLocaleDateString('en-AU', options) %></span>
+              <span class="chevron">▼</span>
+            </button>
+            <div id="week-<%= wIndex %>" class="accordion-content">
+              <% weeklyGroups[monday].forEach((log, dIndex) => { %>
+                <div class="day-group">
+                  <button class="accordion-trigger day-trigger" onclick="toggleAccordion('day-<%= wIndex %>-<%= dIndex %>')">
+                    <span><%= new Date(log.date).toLocaleDateString('en-AU', { weekday: 'long' }) %></span>
+                    <span>🚚 <%= dayLabels[log.date] || '—' %></span>
+                  </button>
+                  <div id="day-<%= wIndex %>-<%= dIndex %>" class="accordion-content">
+                    <div class="temp-row">
+                      <% (log.temps || []).forEach((t, index, arr) => {
+                           const isFirst = index === 0; const isLast = index === arr.length - 1; %>
+                        <div class="temp-chip <%= isFirst ? 'start' : isLast ? 'end' : '' %>">
+                          <div class="temp-time"><%= new Date(t.time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) %></div>
+                          <% if (isFirst) { %>
+                            <div class="temp-multi-grid">
+                              <div class="temp-col"><div class="temp-label">Disp</div><div class="temp-value"><%= t.dispatch ?? '—' %>°</div></div>
+                              <div class="temp-col"><div class="temp-label">Chill</div><div class="temp-value"><%= t.chiller ?? '—' %>°</div></div>
+                              <div class="temp-col"><div class="temp-label">Freez</div><div class="temp-value"><%= t.freezer ?? '—' %>°</div></div>
+                            </div>
+                          <% } else { %>
+                            <div class="temp-label"><%= isLast ? 'End' : 'Cabin' %></div>
+                            <div class="temp-value"><%= t.cabin ?? '—' %>°</div>
+                          <% } %>
+                        </div>
+                      <% }) %>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% }) %>
+        <% if (weeks.length === 0) { %>
+          <div style="text-align:center;color:var(--text-muted);padding:40px 0;font-size:14px;">No shifts recorded yet. Scan an asset QR code to begin.</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-footer">
+    Logged in as <strong><%= user.role.toUpperCase() %></strong> &bull; <a href="/logout">Sign Out</a>
+  </div>
+</div>
+
+<script>
+function toggleAccordion(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+(function() {
+  if (localStorage.getItem('thermio_theme') === 'light') {
+    document.getElementById('appBody').classList.add('light-mode');
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+function toggleDark() {
+  const isLight = document.getElementById('appBody').classList.toggle('light-mode');
+  localStorage.setItem('thermio_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+}
+function toggleHamburger() {
+  document.getElementById('hamburgerDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('hamburgerWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('hamburgerDropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
