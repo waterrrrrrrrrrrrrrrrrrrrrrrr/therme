@@ -57,10 +57,16 @@
   </div>
 
   <div id="reader"></div>
-  <p class="scan-instructions">
+  <p class="scan-instructions" id="scanInstructions">
     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
     Point your camera at the QR code to scan
   </p>
+  <div id="cameraError" style="display:none;padding:24px 16px;text-align:center;max-width:400px;width:100%;">
+    <div style="font-size:2rem;margin-bottom:12px;">📷</div>
+    <p id="cameraErrorMsg" style="color:var(--text-muted);margin:0 0 16px;font-size:15px;">Camera unavailable.</p>
+    <button onclick="startCamera()" style="padding:12px 28px;border-radius:10px;background:var(--blue,#3b82f6);color:white;border:none;cursor:pointer;font-size:15px;font-weight:600;">Try Again</button>
+    <p style="color:var(--text-dim,#6b7280);font-size:12px;margin-top:12px;">Camera requires HTTPS and browser permission.<br>Check your browser's address bar for a camera icon.</p>
+  </div>
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -88,47 +94,63 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Initialize QR scanner with proper permissions
+// Camera error display helper
+function showCameraError(msg) {
+  document.getElementById('reader').style.display = 'none';
+  document.getElementById('scanInstructions').style.display = 'none';
+  document.getElementById('cameraErrorMsg').textContent = msg || 'Camera unavailable.';
+  document.getElementById('cameraError').style.display = 'block';
+}
+
+// Initialize QR scanner
 const qr = new Html5Qrcode("reader");
 
-// Request camera permission first, then start scanner
-Html5Qrcode.getCameras().then(cameras => {
-  if (cameras && cameras.length > 0) {
-    // Use back camera (environment facing) if available
-    const cameraId = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
+function startCamera() {
+  // Hide error, show reader
+  document.getElementById('cameraError').style.display = 'none';
+  document.getElementById('reader').style.display = 'block';
+  document.getElementById('scanInstructions').style.display = 'flex';
+
+  Html5Qrcode.getCameras().then(cameras => {
+    if (!cameras || cameras.length === 0) {
+      showCameraError('No camera found on this device.');
+      return;
+    }
+    // Prefer back/environment-facing camera
+    const cam = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
 
     qr.start(
-      cameraId.id || { facingMode: "environment" },
+      cam.id || { facingMode: 'environment' },
       {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
-        videoConstraints: {
-          facingMode: "environment"
-        }
+        videoConstraints: { facingMode: 'environment' }
       },
       (decodedText) => {
-        // Auto redirect on QR detection
         qr.stop().then(() => {
           window.location.href = decodedText;
         }).catch(() => {
           window.location.href = decodedText;
         });
       },
-      (error) => {
-        // Ignore scan errors (continuous scanning)
-      }
+      () => { /* suppress per-frame scan errors */ }
     ).catch(err => {
-      console.error('Unable to start camera:', err);
-      alert('Camera access denied or not available. Please grant camera permission and reload.');
+      console.error('Camera start error:', err);
+      if (err && (err.message || '').toLowerCase().includes('permission')) {
+        showCameraError('Camera permission denied. Tap "Try Again" or allow camera access in your browser settings.');
+      } else {
+        showCameraError('Unable to start camera. Please check your browser permissions and try again.');
+      }
     });
-  } else {
-    alert('No camera found on this device.');
-  }
-}).catch(err => {
-  console.error('Camera permission error:', err);
-  alert('Unable to access camera. Please grant camera permission in your browser settings.');
-});
+  }).catch(err => {
+    console.error('getCameras error:', err);
+    showCameraError('Unable to access camera. Please grant camera permission in your browser settings.');
+  });
+}
+
+// Start on page load
+startCamera();
 </script>
 
 </body>

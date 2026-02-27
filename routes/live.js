@@ -8,7 +8,7 @@ const { getLiveStatus, formatTimeInTz, minutesAgoPerth, evaluateTempRanges } = r
 const DEFAULT_LIVE_WINDOW = 180;
 
 // ws is the full workspace object (with ws.settings)
-function getLiveData(workspaceId, ws) {
+async function getLiveData(workspaceId, ws) {
   const settings = (ws && ws.settings) || {};
   const tz = settings.timezone || 'Australia/Perth';
   const overdueMinutes = settings.overdueMinutes || 120;

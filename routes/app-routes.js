@@ -61,7 +61,7 @@ router.use(requireLogin);
 router.use(requireWorkspaceAccess);
 
 // ── Home / Dashboard ─────────────────────────────────────────
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const user = req.session.user;
   const ws = req.workspace;
   const vehicles = await VehicleRepo.getAllByWorkspace(ws.id);
@@ -107,7 +107,7 @@ router.get('/', (req, res) => {
       }
     });
 
-    // Generate overdue notifications
+    // Generate overdue notifications (fire-and-forget — does not block dashboard render)
     todayLogs.forEach(l => {
       if (!l.shift_done && l.temps && l.temps.length > 0) {
         const last = l.temps[l.temps.length - 1];
@@ -116,13 +116,13 @@ router.get('/', (req, res) => {
           const since6h = new Date(Date.now() - 6*60*60*1000).toISOString();
           if (!NotificationRepo.hasRecentUnread(ws.id, NotificationRepo.TYPE.OVERDUE_VEHICLE, l.truck_id, since6h)) {
             const v = vehicles.find(v => v.id === l.truck_id);
-            await NotificationRepo.create({
+            NotificationRepo.create({
               workspaceId: ws.id,
               type: NotificationRepo.TYPE.OVERDUE_VEHICLE,
               title: `Overdue: ${v ? v.rego : 'Vehicle'}`,
               body: `No log for ${Math.round(msSince/60000)} minutes`,
               vehicleId: l.truck_id
-            });
+            }).catch(err => console.error('[notification] create failed:', err.message));
           }
         }
       }
@@ -217,7 +217,7 @@ router.get('/misc', requireLogin, requireWorkspaceAccess, (req, res) => {
 });
 
 // ── Staff management ─────────────────────────────────────────
-router.get('/staff', requireOffice, (req, res) => {
+router.get('/staff', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const allUsers = await UserRepo.getAllByWorkspace(ws.id);
   const vehicles = await VehicleRepo.getAllByWorkspace(ws.id);
@@ -269,7 +269,7 @@ router.get('/staff/credentials', requireAdmin, (req, res) => {
   res.render('staff-credentials', { user: req.session.user, workspace: req.workspace, creds });
 });
 
-router.get('/staff/:id', requireOffice, (req, res) => {
+router.get('/staff/:id', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const person = await UserRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!person) return res.status(404).render('errors/404', { user: req.session.user, workspace: ws });
@@ -397,17 +397,21 @@ router.post('/staff/add', requireAdmin, async (req, res) => {
   // Password user
   const password = generatePassword();
   const passwordHash = await bcrypt.hash(password, 12);
-  // Temporary staff support (spec item 13)
+  // Temporary staff support — expiry at 12:01am in workspace timezone (not server/UTC)
+  const { DateTime } = require('luxon');
+  const wsTzStr = (ws.settings && ws.settings.timezone) || 'Australia/Perth';
   let isTemporary = req.body.isTemporary === 'on' || req.body.isTemporary === '1';
   let expiryDate = null;
   if (isTemporary && req.body.expiryDate) {
-    expiryDate = new Date(req.body.expiryDate);
-    expiryDate.setHours(0, 1, 0, 0); // 12:01am
+    expiryDate = DateTime.fromISO(req.body.expiryDate, { zone: wsTzStr })
+      .set({ hour: 0, minute: 1, second: 0, millisecond: 0 })
+      .toJSDate();
   } else if (isTemporary && req.body.expiryPreset && req.body.expiryPreset !== 'custom') {
     const weeks = parseInt(req.body.expiryPreset);
-    expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + weeks * 7);
-    expiryDate.setHours(0, 1, 0, 0);
+    expiryDate = DateTime.now().setZone(wsTzStr)
+      .plus({ weeks })
+      .set({ hour: 0, minute: 1, second: 0, millisecond: 0 })
+      .toJSDate();
   }
 
   const newUser = await UserRepo.create({
@@ -542,7 +546,7 @@ router.post('/staff/transfer-ownership', async (req, res) => {
   res.redirect('/app?ownershipTransferred=1');
 });
 
-router.post('/staff/deactivate/:id', requireAdmin, (req, res) => {
+router.post('/staff/deactivate/:id', requireAdmin, async (req, res) => {
   const person = await UserRepo.getByIdAndWorkspace(req.params.id, req.workspace.id);
   if (!person) return res.status(404).send('Not found');
   if (person.isOwner) return res.status(403).send('Cannot deactivate the Workspace Owner account.');
@@ -550,7 +554,7 @@ router.post('/staff/deactivate/:id', requireAdmin, (req, res) => {
   res.redirect('/app/staff');
 });
 
-router.post('/staff/reactivate/:id', requireAdmin, (req, res) => {
+router.post('/staff/reactivate/:id', requireAdmin, async (req, res) => {
   const person = await UserRepo.getByIdAndWorkspace(req.params.id, req.workspace.id);
   if (!person) return res.status(404).send('Not found');
   await UserRepo.reactivate(req.params.id);
@@ -569,7 +573,7 @@ router.post('/staff/reset-password/:id', requireAdmin, async (req, res) => {
 });
 
 // ── Vehicles ──────────────────────────────────────────────────
-router.get('/assets', requireOffice, (req, res) => {
+router.get('/assets', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const vehicles = await VehicleRepo.getAllByWorkspace(ws.id);
   const logs = await TempLogRepo.getAllByWorkspace(ws.id);
@@ -680,7 +684,7 @@ router.get('/assets/:id', requireOffice, async (req, res) => {
   });
 });
 
-router.post('/assets/add', requireAdmin, (req, res) => {
+router.post('/assets/add', requireAdmin, async (req, res) => {
   const ws = req.workspace;
   const vehicleCount = await VehicleRepo.countByWorkspace(ws.id);
   if (vehicleCount >= (ws.maxVehicles || 20)) return res.redirect('/app/assets?error=Vehicle+limit+reached');
@@ -704,7 +708,7 @@ router.post('/assets/add', requireAdmin, (req, res) => {
 });
 
 // ── Edit Asset Type / Temperature Type ───────────────────────
-router.post('/assets/:id/edit-type', requireAdmin, (req, res) => {
+router.post('/assets/:id/edit-type', requireAdmin, async (req, res) => {
   const ws = req.workspace;
   const v = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!v) return res.status(404).send('Asset not found');
@@ -730,14 +734,14 @@ router.post('/assets/:id/edit-type', requireAdmin, (req, res) => {
   res.redirect(`/app/assets/${req.params.id}?typeUpdated=1`);
 });
 
-router.post('/assets/deactivate/:id', requireAdmin, (req, res) => {
+router.post('/assets/deactivate/:id', requireAdmin, async (req, res) => {
   const v = await VehicleRepo.getByIdAndWorkspace(req.params.id, req.workspace.id);
   if (!v) return res.status(404).send('Not found');
   await VehicleRepo.deactivate(req.params.id);
   res.redirect('/app/assets');
 });
 
-router.post('/assets/reactivate/:id', requireAdmin, (req, res) => {
+router.post('/assets/reactivate/:id', requireAdmin, async (req, res) => {
   const v = await VehicleRepo.getByIdAndWorkspace(req.params.id, req.workspace.id);
   if (!v) return res.status(404).send('Not found');
   await VehicleRepo.reactivate(req.params.id);
@@ -745,7 +749,7 @@ router.post('/assets/reactivate/:id', requireAdmin, (req, res) => {
 });
 
 // ── Temperature sheet ─────────────────────────────────────────
-router.get('/assets/:id/sheet', requireOffice, (req, res) => {
+router.get('/assets/:id/sheet', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const { date } = req.query;
   if (!date) return res.send('Date is required. Example: ?date=2026-02-05');
@@ -789,7 +793,7 @@ router.get('/assets/:id/sheet', requireOffice, (req, res) => {
 });
 
 // ── Admin sign-off ────────────────────────────────────────────
-router.post('/assets/:id/week-note', requireOffice, (req, res) => {
+router.post('/assets/:id/week-note', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const { monday, signature, comments } = req.body;
 
@@ -866,7 +870,7 @@ router.post('/assets/:id/admin-sign', requireAdmin, async (req, res) => {
 });
 
 // ── Truck (driver) page ───────────────────────────────────────
-router.get('/truck/:id', requireLogin, requireWorkspaceAccess, (req, res) => {
+router.get('/truck/:id', requireLogin, requireWorkspaceAccess, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
 
@@ -906,7 +910,7 @@ router.get('/truck/:id', requireLogin, requireWorkspaceAccess, (req, res) => {
   });
 });
 
-router.post('/truck/:id/checklist', requireLogin, requireWorkspaceAccess, (req, res) => {
+router.post('/truck/:id/checklist', requireLogin, requireWorkspaceAccess, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
@@ -931,7 +935,7 @@ router.post('/truck/:id/checklist', requireLogin, requireWorkspaceAccess, (req, 
   res.redirect(`/app/truck/${req.params.id}`);
 });
 
-router.post('/truck/:id/temps', requireLogin, requireWorkspaceAccess, (req, res) => {
+router.post('/truck/:id/temps', requireLogin, requireWorkspaceAccess, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
@@ -955,7 +959,7 @@ router.post('/truck/:id/temps', requireLogin, requireWorkspaceAccess, (req, res)
   res.redirect(`/app/truck/${req.params.id}`);
 });
 
-router.post('/truck/:id/temps/edit/:tempId', requireLogin, requireWorkspaceAccess, (req, res) => {
+router.post('/truck/:id/temps/edit/:tempId', requireLogin, requireWorkspaceAccess, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
@@ -974,7 +978,7 @@ router.post('/truck/:id/temps/edit/:tempId', requireLogin, requireWorkspaceAcces
   res.redirect(`/app/truck/${req.params.id}`);
 });
 
-router.post('/truck/:id/end-shift', requireLogin, requireWorkspaceAccess, (req, res) => {
+router.post('/truck/:id/end-shift', requireLogin, requireWorkspaceAccess, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
@@ -1024,9 +1028,9 @@ router.get('/scan', requireLogin, (req, res) => {
 });
 
 // ── Live page ─────────────────────────────────────────────────
-router.get('/live', requireOffice, (req, res) => {
+router.get('/live', requireOffice, async (req, res) => {
   const ws = req.workspace;
-  const liveData = getLiveData(ws.id, ws);
+  const liveData = await getLiveData(ws.id, ws);
   res.render('live', { user: req.session.user, workspace: ws, ...liveData });
 });
 
@@ -1040,7 +1044,7 @@ router.get('/settings', requireLogin, (req, res) => {
 router.post('/settings/branding', requireOwnerOrAdmin, upload.fields([
   { name: 'favicon', maxCount: 1 },
   { name: 'loginBackground', maxCount: 1 }
-]), (req, res) => {
+]), async (req, res) => {
   const ws = req.workspace;
   const brandingUpdates = {};
 
@@ -1062,7 +1066,7 @@ router.post('/settings/branding', requireOwnerOrAdmin, upload.fields([
 });
 
 // Settings route - admin or owner
-router.post('/settings/checklist', requireOwnerOrAdmin, (req, res) => {
+router.post('/settings/checklist', requireOwnerOrAdmin, async (req, res) => {
   const ws = req.workspace;
   // Support both new dynamic format (questions[]) and legacy format (q1, q2, ...)
   let questions = [];
@@ -1102,7 +1106,7 @@ router.post('/settings/checklist', requireOwnerOrAdmin, (req, res) => {
 });
 
 // Settings route - admin or owner
-router.post('/settings/compliance', requireOwnerOrAdmin, (req, res) => {
+router.post('/settings/compliance', requireOwnerOrAdmin, async (req, res) => {
   const ws = req.workspace;
   const body = req.body;
 
@@ -1221,7 +1225,7 @@ router.post('/settings/change-password', requireLogin, async (req, res) => {
 });
 
 // ── Exports ───────────────────────────────────────────────────
-router.get('/exports', requireOffice, (req, res) => {
+router.get('/exports', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const exports = await ExportRepo.getAllByWorkspace(ws.id);
   res.render('workspace/exports', { user: req.session.user, workspace: ws, exports });
@@ -1250,7 +1254,7 @@ router.post('/exports/generate', requireOffice, async (req, res) => {
   }
 });
 
-router.get('/exports/:id/download', requireOffice, (req, res) => {
+router.get('/exports/:id/download', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const record = await ExportRepo.getById(req.params.id, ws.id);
   if (!record || !record.zipPath) return res.status(404).send('Export not found');
@@ -1260,7 +1264,7 @@ router.get('/exports/:id/download', requireOffice, (req, res) => {
 });
 
 // ── Service Records ────────────────────────────────────────────
-router.post('/assets/:id/service/add', requireOffice, (req, res) => {
+router.post('/assets/:id/service/add', requireOffice, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
@@ -1289,7 +1293,7 @@ router.post('/assets/:id/service/add', requireOffice, (req, res) => {
   res.redirect(`/app/assets/${req.params.id}?success=service`);
 });
 
-router.post('/assets/:id/service/:recordId/delete', requireAdmin, (req, res) => {
+router.post('/assets/:id/service/:recordId/delete', requireAdmin, async (req, res) => {
   const ws = req.workspace;
   const truck = await VehicleRepo.getByIdAndWorkspace(req.params.id, ws.id);
   if (!truck) return res.status(404).send('Not found');
