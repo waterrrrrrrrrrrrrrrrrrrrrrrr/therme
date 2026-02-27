@@ -32,7 +32,7 @@
       <% } %>
 
       <form method="POST" action="/login">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <label>PIN</label>
         <div class="pin-wrapper">
           <input

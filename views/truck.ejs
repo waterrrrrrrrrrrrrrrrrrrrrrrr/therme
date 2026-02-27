@@ -193,7 +193,7 @@ Date: <%= new Date().toLocaleDateString('en-AU', {
     <div class="box">
       <h2>🧾 Pre-Start Checklist</h2>
       <form method="POST" action="/app/truck/<%= truck.id %>/checklist" id="checklistForm">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <% checklistQuestions.forEach((q, i) => { %>
         <input type="hidden" name="q<%= i+1 %>" id="q<%= i+1 %>">
         <% }) %>
@@ -229,7 +229,7 @@ Date: <%= new Date().toLocaleDateString('en-AU', {
       <h3 style="font-size: 0.9rem; color: #888; text-transform: uppercase;">Edit Previous Entries</h3>
       <% log.temps.forEach((t, index) => { %>
         <form method="POST" action="/app/truck/<%= truck.id %>/temps/edit/<%= index %>" class="temp-log" style="border-left: 4px solid #ffb300; margin-bottom: 10px;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <strong style="font-size: 12px;"><%= new Date(t.time).toLocaleTimeString('en-AU', {
   timeZone: timezone || 'Australia/Perth',
@@ -281,7 +281,7 @@ Date: <%= new Date().toLocaleDateString('en-AU', {
   <h3>New Entry</h3>
   <% if (log.temps.length === 0) { %>
     <form method="POST" action="/app/truck/<%= truck.id %>/temps">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <input name="dispatch" type="number" step="0.1" placeholder="Truck Dispatch Temp (°C)" required>
       <input name="chiller" type="number" step="0.1" placeholder="Warehouse Chiller Temp (°C)" required>
       <input name="freezer" type="number" step="0.1" placeholder="Warehouse Freezer Temp (°C)" required>
@@ -289,7 +289,7 @@ Date: <%= new Date().toLocaleDateString('en-AU', {
     </form>
   <% } else { %>
     <form method="POST" action="/app/truck/<%= truck.id %>/temps">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <input name="cabin" type="number" step="0.1" placeholder="Cabin Temp (°C)" required>
       <button type="submit">Log Cabin Temp</button>
     </form>
@@ -346,7 +346,7 @@ Date: <%= new Date().toLocaleDateString('en-AU', {
     <div class="box" style="border-top: 2px solid #ff3b3b;">
       <button id="showEndShift" class="danger" type="button" onclick="showEndShiftForm()">End Shift</button>
       <form id="endShiftForm" method="POST" action="/app/truck/<%= truck.id %>/end-shift" style="display:none;" onsubmit="prepareSignature()">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <input name="cabin" type="number" step="0.1" placeholder="Final Cabin Temp (°C)" required class="temp-input">
 
 <% if (isSignoffDay) { %>

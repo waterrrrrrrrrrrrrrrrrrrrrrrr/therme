@@ -355,7 +355,7 @@
     <h3>Change Role</h3>
     <p>Assign a new role for <strong><%= person.name %></strong>. Takes effect immediately.</p>
     <form method="POST" action="/app/staff/update-role" id="roleForm">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <input type="hidden" name="staffId" value="<%= person.id %>">
       <div class="modal-role-options">
         <label class="modal-role-option">
@@ -441,7 +441,7 @@ async function submitTransfer() {
     const formData = new FormData();
     formData.append('newOwnerId', '<%= person.id %>');
     formData.append('confirmPassword', pw.value);
-    formData.append('_security-token', '<%= security-tokenToken %>');
+    formData.append('_security-token', '<%= csrfToken %>');
     const resp = await fetch('/app/staff/transfer-ownership', {
       method: 'POST',
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
