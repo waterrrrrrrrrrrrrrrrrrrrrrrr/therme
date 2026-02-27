@@ -48,7 +48,7 @@ function configurePassport(passport) {
       const slug = state || req.session.googleWorkspaceSlug;
       if (!slug) return done(null, false, { message: 'No workspace context for Google login.' });
 
-      const ws = WorkspaceRepo.getBySlug(slug);
+      const ws = await WorkspaceRepo.getBySlug(slug);
       if (!ws) return done(null, false, { message: 'Workspace not found.' });
       if (ws.status === 'suspended') return done(null, false, { message: 'Workspace is suspended.' });
 
@@ -69,7 +69,7 @@ function configurePassport(passport) {
       // If first Google login (status=invited), attach googleId and activate
       if (!user.googleId || user.status === 'invited') {
         await UserRepo.linkGoogle(user.id, googleId);
-        UserRepo.update(user.id, { status: 'active' });
+        await UserRepo.update(user.id, { status: 'active' });
         user = await UserRepo.getById(user.id);
       }
 
@@ -79,10 +79,9 @@ function configurePassport(passport) {
     }
   }));
 
-  passport.serializeUser((user, done) => done(null, { id: user.id, workspaceId: user.workspaceId }));
-passport.serializeUser((user, done) => {
-  done(null, { id: user.id, workspaceId: user.workspaceId });
-});
+  passport.serializeUser((user, done) => {
+    done(null, { id: user.id, workspaceId: user.workspaceId });
+  });
 
 passport.deserializeUser(async (data, done) => {
   try {
@@ -114,7 +113,7 @@ router.get('/google/callback',
     require('passport').authenticate('google', { failureRedirect: '/login', session: false }, async (err, user, info) => {
       if (err) return next(err);
       const slug = req.session.googleWorkspaceSlug;
-      const ws = slug ? WorkspaceRepo.getBySlug(slug) : null;
+      const ws = slug ? await WorkspaceRepo.getBySlug(slug) : null;
 
       if (!user) {
         const message = info && info.message ? info.message : 'Google login failed.';

@@ -56,9 +56,6 @@ router.post('/login', loginLimiter, async (req, res) => {
 });
 
 // ── Dashboard ────────────────────────────────────────────────
-router.get('/', requirePortalAdmin, async (req, res) => {
-  const workspaces = await WorkspaceRepo.getAll();
-
 router.get('/', requirePortalAdmin, async (req, res, next) => {
   try {
     const workspaces = await WorkspaceRepo.getAll();
@@ -87,37 +84,40 @@ router.get('/', requirePortalAdmin, async (req, res, next) => {
 
 
 // ── Platform Stats ───────────────────────────────────────────
-router.get('/stats', requirePortalAdmin, async (req, res) => {
-  const workspaces = await WorkspaceRepo.getAll();
+router.get('/stats', requirePortalAdmin, async (req, res, next) => {
+  try {
+    const workspaces = await WorkspaceRepo.getAll();
+    const todayStr = new Date().toISOString().split('T')[0];
 
-  const todayStr = new Date().toISOString().split('T')[0];
+    const wsData = await Promise.all(workspaces.map(async (ws) => {
+      const logCount     = await TempLogRepo.countByWorkspace(ws.id) || 0;
+      const userCount    = await UserRepo.countByWorkspace(ws.id) || 0;
+      const vehicleCount = await VehicleRepo.countByWorkspace(ws.id) || 0;
+      const logsToday    = TempLogRepo.countByWorkspaceAndDate
+        ? (await TempLogRepo.countByWorkspaceAndDate(ws.id, todayStr) || 0)
+        : 0;
+      return { name: ws.name, logCount, userCount, vehicleCount, logsToday };
+    }));
 
-  const wsData = workspaces.map(ws => {
-    const logCount    = await TempLogRepo.countByWorkspace(ws.id) || 0;
-    const userCount   = await UserRepo.countByWorkspace(ws.id) || 0;
-    const vehicleCount= await VehicleRepo.countByWorkspace(ws.id) || 0;
-    const logsToday   = await TempLogRepo.countByWorkspaceAndDate
-      ? (await TempLogRepo.countByWorkspaceAndDate(ws.id, todayStr) || 0)
-      : 0;
-    return { name: ws.name, logCount, userCount, vehicleCount, logsToday };
-  });
+    const totalLogs       = wsData.reduce((sum, w) => sum + (w.logCount || 0), 0);
+    const totalWorkspaces = workspaces.length;
+    const totalUsers      = wsData.reduce((sum, w) => sum + (w.userCount || 0), 0);
+    const logsToday       = wsData.reduce((sum, w) => sum + (w.logsToday || 0), 0);
 
-  const totalLogs       = wsData.reduce((sum, w) => sum + (w.logCount || 0), 0);
-  const totalWorkspaces = workspaces.length;
-  const totalUsers      = wsData.reduce((sum, w) => sum + (w.userCount || 0), 0);
-  const logsToday       = wsData.reduce((sum, w) => sum + (w.logsToday || 0), 0);
-
-  res.render('portal/stats', {
-    user: req.session.user,
-    workspace: null,
-    stats: {
-      totalLogs,
-      totalWorkspaces,
-      totalUsers,
-      logsToday,
-      workspaces: wsData
-    }
-  });
+    res.render('portal/stats', {
+      user: req.session.user,
+      workspace: null,
+      stats: {
+        totalLogs,
+        totalWorkspaces,
+        totalUsers,
+        logsToday,
+        workspaces: wsData
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // ── Create Workspace ─────────────────────────────────────────
@@ -312,9 +312,9 @@ router.get('/workspaces/:id/backup', requirePortalAdmin, async (req, res) => {
   const ws = await WorkspaceRepo.getById(req.params.id);
   if (!ws) return res.status(404).send('Not found');
 
-  const users = await UserRepo.getAllByWorkspace(ws.id);
-  const vehicles = VehicleRepo.getAllByWorkspace(ws.id);
-  const logs = TempLogRepo.getAllByWorkspace(ws.id);
+  const users    = await UserRepo.getAllByWorkspace(ws.id);
+  const vehicles = await VehicleRepo.getAllByWorkspace(ws.id);
+  const logs     = await TempLogRepo.getAllByWorkspace(ws.id);
 
   const backup = {
     exportedAt: new Date().toISOString(),

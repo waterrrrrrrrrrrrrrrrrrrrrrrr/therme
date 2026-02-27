@@ -1,0 +1,22 @@
+User-agent: *
+
+# Block private/admin areas
+Disallow: /portal
+Disallow: /portal/
+Disallow: /app
+Disallow: /app/
+Disallow: /auth/
+Disallow: /w/
+
+# Allow public-facing pages
+Allow: /$
+Allow: /features
+Allow: /pricing
+Allow: /about
+Allow: /security
+Allow: /privacy
+Allow: /terms
+Allow: /acceptable-use
+Allow: /demo
+
+Sitemap: https://thermio.app/sitemap.xml
