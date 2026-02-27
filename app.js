@@ -105,7 +105,19 @@ app.use((req, res, next) => {
 });
 
 // ── CSRF protection ───────────────────────────────────────────
-const csrfProtection = csrf({ cookie: false });
+const csrfProtection = csrf({
+  cookie: false,
+  value: (req) => {
+    if (!req) return '';
+    return (req.body && (req.body._security-token || req.body._csrf)) ||
+      (req.query && req.query._csrf) ||
+      req.headers['csrf-token'] ||
+      req.headers['xsrf-token'] ||
+      req.headers['x-csrf-token'] ||
+      req.headers['x-xsrf-token'] ||
+      '';
+  }
+});
 
 function csrfMiddleware(req, res, next) {
   const skip = [
