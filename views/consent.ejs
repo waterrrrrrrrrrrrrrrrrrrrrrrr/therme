@@ -222,7 +222,7 @@
   <% } %>
 
   <form method="POST" action="/consent" id="consentForm">
-    <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+    <input type="hidden" name="_security-token" value="<%= csrfToken %>">
 
     <div class="doc-list">
 

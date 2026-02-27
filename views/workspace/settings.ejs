@@ -95,7 +95,7 @@
     <div class="settings-card">
       <div class="settings-card-title">Branding</div>
       <form method="POST" action="/app/settings/branding" enctype="multipart/form-data">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <label>Primary Color</label>
         <div class="color-row">
           <input type="color" name="primaryColor" id="pc" value="<%= (workspace.branding && workspace.branding.primaryColor) || '#3b82f6' %>" oninput="syncColor(this,'pcPrev','pcText')">
@@ -142,7 +142,7 @@
         <strong>Questions: <span id="questionCount">0</span>/ 
       </p>
       <form method="POST" action="/app/settings/checklist" id="checklistForm">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         
             <input type="text" name="questions[]" value="<%= q %>" placeholder="Enter question here!" style="flex:1;">
             <button type="button" class="q-remove-btn" onclick="removeQuestion(this)" title="Remove question">✕</button>
@@ -169,7 +169,7 @@
     <div class="settings-card">
       <div class="settings-card-title">Compliance Configuration</div>
       <form method="POST" action="/app/settings/compliance">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
 
         <label>Workspace Timezone</label>
         <select name="timezone">
@@ -266,7 +266,7 @@
     <div class="settings-card">
       <div class="settings-card-title">Export Schedule</div>
       <form method="POST" action="/app/settings/export">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <% const es = workspace.exportSettings || {}; %>
         <label>Frequency</label>
         <select name="frequency">
@@ -294,7 +294,7 @@
       <div class="settings-card-title">Change Password</div>
       <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">Update your own account password. You will be required to log in again after changing.</p>
       <form method="POST" action="/app/settings/change-password" id="personalPwForm">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <div class="form-group">
           <label>Current Password</label>
           <input type="password" name="currentPassword" placeholder="Current password" autocomplete="current-password" required>
@@ -348,7 +348,7 @@
       <div class="settings-card-title">Google Account</div>
       <p style="color:var(--text-muted);font-size:13px;margin:0 0 var(--sp-md);">You have linked your Google account for sign-in.</p>
       <form method="POST" action="/profile/unbind-google" onsubmit="return confirm('Are you sure you want to unbind your Google account? You will need to use your password to log in.');">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <button type="submit" class="settings-section-btn" style="background:linear-gradient(180deg, #ef4444, #dc2626);">Unbind Google Account</button>
       </form>
     </div>

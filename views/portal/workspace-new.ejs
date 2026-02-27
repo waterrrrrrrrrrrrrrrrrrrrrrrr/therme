@@ -39,7 +39,7 @@
 
   <div class="card">
     <form method="POST" action="/portal/workspaces/new" id="createForm">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
 
       <div class="form-section">
         <div class="section-title">Workspace Details</div>

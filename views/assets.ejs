@@ -124,12 +124,12 @@
     <div class="vehicle-actions">
       <% if (v.deactivated) { %>
         <form action="/app/assets/reactivate/<%= v.id %>" method="POST" style="flex:1;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <button class="btn success" style="width:100%;">Reactivate</button>
         </form>
       <% } else { %>
         <form action="/app/assets/deactivate/<%= v.id %>" method="POST" style="flex:1;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <button class="btn danger" style="width:100%;">Deactivate</button>
         </form>
       <% } %>
@@ -144,7 +144,7 @@
   <div class="modal">
     <h2>Add New Asset</h2>
     <form action="/app/assets/add" method="POST">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <div class="form-group">
         <label>Asset Name / Rego</label>
         <input name="rego" placeholder="e.g. ABC123, Fridge-01" required>

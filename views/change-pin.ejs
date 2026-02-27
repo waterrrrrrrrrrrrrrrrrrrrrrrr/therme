@@ -61,7 +61,7 @@
   <div class="box">
     <h2>Update Your PIN</h2>
     <form method="POST" action="/change-pin">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <input type="password" name="newPin" placeholder="Enter New PIN" required>
       <input type="password" name="confirmPin" placeholder="Confirm New PIN" required>
       <button type="submit">Save PIN</button>

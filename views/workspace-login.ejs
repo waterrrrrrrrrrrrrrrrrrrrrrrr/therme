@@ -94,7 +94,7 @@
         <% } %>
 
         <form method="POST" action="/w/<%= workspace.slug %>/login" autocomplete="off" id="loginForm">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <div class="form-group">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" placeholder="Username" required autofocus autocomplete="username">

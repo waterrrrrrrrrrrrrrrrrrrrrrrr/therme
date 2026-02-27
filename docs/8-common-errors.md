@@ -107,7 +107,7 @@ sudo -u postgres psql -d thermio_db -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN
 
 ### `CSRF token mismatch`
 **Cause:** Form submitted without `_security-token` field, or session expired.
-**Fix:** Reload the page and resubmit. If persistent, check the EJS template includes `<input type="hidden" name="_security-token" value="<%= security-tokenToken %>">` (note: the field name is `_security-token`).
+**Fix:** Reload the page and resubmit. If persistent, check the EJS template includes `<input type="hidden" name="_security-token" value="<%= csrfToken %>">` (note: the field name is `_security-token`).
 
 ---
 

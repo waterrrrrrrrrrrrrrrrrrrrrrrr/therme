@@ -90,12 +90,12 @@
 
       <% if (!s.active) { %>
         <form action="/app/staff/reactivate/<%= s.id %>" method="POST" style="flex:1;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <button class="btn success" style="width:100%;padding:7px 10px;font-size:12px;">Reactivate</button>
         </form>
       <% } else { %>
         <form action="/app/staff/deactivate/<%= s.id %>" method="POST" style="flex:1;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <button class="btn danger" style="width:100%;padding:7px 10px;font-size:12px;">Deactivate</button>
         </form>
       <% } %>
@@ -114,7 +114,7 @@
       <button type="button" onclick="setInviteMethod('google')" id="methodBtnGoogle" class="btn ghost" style="flex:1;">Google</button>
     </div>
     <form action="/app/staff/add" method="POST" id="addStaffForm">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <input type="hidden" name="accountType" id="inviteMethodInput" value="password">
       <div class="form-group">
         <label>First Name</label>
@@ -216,9 +216,9 @@ function updateRole(select) {
   form.action = '/app/staff/update-role';
   form.style.display = 'none';
 
-  const security-tokenInput  = document.createElement('input');
-  security-tokenInput.name   = '_security-token';
-  security-tokenInput.value  = '<%= security-tokenToken %>';
+  const securityTokenInput  = document.createElement('input');
+  securityTokenInput.name   = '_security-token';
+  securityTokenInput.value  = '<%= csrfToken %>';
 
   const idInput  = document.createElement('input');
   idInput.name   = 'staffId';
@@ -228,7 +228,7 @@ function updateRole(select) {
   roleInput.name   = 'role';
   roleInput.value  = newRole;
 
-  form.appendChild(security-tokenInput);
+  form.appendChild(securityTokenInput);
   form.appendChild(idInput);
   form.appendChild(roleInput);
   document.body.appendChild(form);

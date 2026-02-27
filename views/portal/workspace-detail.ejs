@@ -105,12 +105,12 @@
       <div class="action-btn-row" style="margin-top:8px;">
         <% if (ws.status === 'active') { %>
           <form method="POST" action="/portal/workspaces/<%= ws.id %>/suspend">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <button class="btn btn-red btn-block" type="submit">Suspend Workspace</button>
           </form>
         <% } else { %>
           <form method="POST" action="/portal/workspaces/<%= ws.id %>/activate">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <button class="btn btn-green btn-block" type="submit">Activate Workspace</button>
           </form>
         <% } %>
@@ -121,7 +121,7 @@
             Login as Owner (<%= owner.username %>)
           </a>
           <form method="POST" action="/portal/workspaces/<%= ws.id %>/reset-owner-password" onsubmit="return confirm('Reset the Owner account password? The temporary password will be displayed once.')">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <button class="btn btn-block" type="submit" style="background:#1c1010;color:#f87171;border:1px solid #7f1d1d;width:100%;">
               Reset Owner Password
             </button>
@@ -144,7 +144,7 @@
       <div class="alert alert-error" style="margin-bottom:12px;"><%= limitsError %></div>
     <% } %>
     <form method="POST" action="/portal/workspaces/<%= ws.id %>/limits" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <div style="flex:1;min-width:130px">
         <label>Max Users <span style="color:#6b7280;font-size:11px">(currently <%= ws.userCount %> used)</span></label>
         <input type="number" name="maxUsers" value="<%= ws.maxUsers %>" min="1" max="9999">
@@ -168,7 +168,7 @@
     <div class="card-title">Data Retention</div>
     <p style="color:#9ca3af;font-size:13px;margin:0 0 16px">Configure how long temperature logs are stored for this workspace.</p>
     <form method="POST" action="/portal/workspaces/<%= ws.id %>/retention" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <input type="checkbox" name="retentionEnabled" id="retEnabled" value="1" <%= (ws.settings && ws.settings.retentionEnabled) ? 'checked' : '' %>>
         <label for="retEnabled" style="color:#d1d5db;font-size:13px;margin:0">Enable Auto-Delete</label>
@@ -196,7 +196,7 @@
       <div>
         <p style="font-size:12px;color:#6b7280;margin:0 0 8px;">Restore from a previously exported backup file. This will overwrite all current data.</p>
         <form method="POST" action="/portal/workspaces/<%= ws.id %>/restore" enctype="multipart/form-data" onsubmit="return confirm('Restore will overwrite all current workspace data. Are you sure?')">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <input type="file" name="backupFile" accept=".json" required class="file-input" style="flex:1;min-width:200px;">
             <button class="btn btn-red" type="submit" style="white-space:nowrap;">Restore Backup</button>

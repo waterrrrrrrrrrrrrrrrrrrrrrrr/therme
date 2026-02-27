@@ -338,7 +338,7 @@
 
     <% if (user.role === 'admin' || user.role === 'office') { %>
     <form class="service-add-form" method="POST" action="/app/assets/<%= truck.id %>/service/add">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <select name="category" required>
         <option value="" disabled selected>Category…</option>
         <option value="Vehicle Related">🚚 Vehicle Related</option>
@@ -382,7 +382,7 @@
           </div>
           <% if (user.role === 'admin') { %>
           <form method="POST" action="/app/assets/<%= truck.id %>/service/<%= r.id %>/delete" onsubmit="return confirm('Delete this service record?')">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <button class="btn-del-service" type="submit">Delete</button>
           </form>
           <% } %>
@@ -398,7 +398,7 @@
     <% if (user.role === 'admin') { %>
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:16px;">
       <form method="POST" action="/app/assets/<%= truck.id %>/notes">
-        <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+        <input type="hidden" name="_security-token" value="<%= csrfToken %>">
         <div style="display:flex;flex-direction:column;gap:8px;">
           <select name="type" required style="background:var(--bg-input);color:var(--text);border:1px solid var(--border2);padding:8px 10px;border-radius:6px;font-size:12px;font-family:inherit;">
             <option value="maintenance">🔧 Maintenance</option>
@@ -429,7 +429,7 @@
         </div>
         <% if (user.role === 'admin') { %>
         <form method="POST" action="/app/assets/<%= truck.id %>/notes/<%= note.id %>/delete" onsubmit="return confirm('Delete this note?')" style="margin:0;">
-          <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+          <input type="hidden" name="_security-token" value="<%= csrfToken %>">
           <button style="background:none;border:1px solid rgba(239,68,68,0.3);color:var(--red);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:10px;" type="submit">Delete</button>
         </form>
         <% } %>
@@ -455,7 +455,7 @@
   <div class="stats-detail-card" style="border-left-color:#3b82f6;">
     <h3>Edit Asset Details</h3>
     <form method="POST" action="/app/assets/<%= truck.id %>/edit-type" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <div style="flex:1;min-width:160px;">
         <label style="display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Asset Type</label>
         <select name="assetType" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;">
@@ -537,7 +537,7 @@
           <canvas class="admin-sig-canvas" data-index="<%= wIndex %>" id="admin-sig-<%= wIndex %>"
             style="background:#fff;border:2px dashed #555;margin-top:8px;"></canvas>
           <form method="POST" action="/app/assets/<%= truck.id %>/admin-sign" onsubmit="prepareAdminSig(<%= wIndex %>)">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <input type="hidden" name="monday" value="<%= monday %>">
             <input type="hidden" name="signature" id="admin-sig-input-<%= wIndex %>">
             <button class="save-note-btn">Sign & Verify</button>
@@ -547,7 +547,7 @@
 
         <div class="week-note-box">
           <form method="POST" action="/app/assets/<%= truck.id %>/week-note" onsubmit="event.stopPropagation()">
-            <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+            <input type="hidden" name="_security-token" value="<%= csrfToken %>">
             <input type="hidden" name="monday" value="<%= monday %>">
             <textarea name="comments" rows="2" placeholder="Add note for Temp Sheet."><%= weekNote %></textarea>
             <button class="save-note-btn">Save Note</button>

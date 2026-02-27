@@ -42,7 +42,7 @@
   <div class="card">
     <div class="section-title">Generate Export</div>
     <form method="POST" action="/app/exports/generate">
-      <input type="hidden" name="_security-token" value="<%= security-tokenToken %>">
+      <input type="hidden" name="_security-token" value="<%= csrfToken %>">
       <div class="gen-row">
         <div>
           <label>Period Start</label>
